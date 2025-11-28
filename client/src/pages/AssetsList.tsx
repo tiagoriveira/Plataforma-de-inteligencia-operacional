@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { Search, Filter, Plus, MoreHorizontal, X, Download, Check } from "lucide-react";
+import { Search, Filter, Plus, MoreHorizontal, X, Download, Upload } from "lucide-react";
 import { Link } from "wouter";
 import {
   Select,
@@ -37,6 +37,7 @@ export default function AssetsList() {
   const [statusFilter, setStatusFilter] = useState(() => localStorage.getItem("assets_status_filter") || "TODOS");
   const [typeFilter, setTypeFilter] = useState(() => localStorage.getItem("assets_type_filter") || "TODOS");
   const [showFilters, setShowFilters] = useState(() => localStorage.getItem("assets_show_filters") === "true");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     localStorage.setItem("assets_search", search);
@@ -102,6 +103,44 @@ export default function AssetsList() {
     });
   };
 
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const lines = content.split("\n");
+      // Skip header row
+      const newAssets = lines.slice(1).filter(line => line.trim()).map(line => {
+        const [id, name, type, location, status, lastEvent] = line.split(",");
+        return {
+          id: id?.trim() || `NEW-${Math.floor(Math.random() * 1000)}`,
+          name: name?.trim() || "Novo Ativo",
+          type: type?.trim() || "OUTRO",
+          location: location?.trim() || "N/A",
+          status: status?.trim() || "OPERACIONAL",
+          lastEvent: lastEvent?.trim() || "AGORA"
+        };
+      });
+
+      setAssets(prev => [...prev, ...newAssets]);
+      toast.success("Importação concluída!", {
+        description: `${newAssets.length} novos ativos adicionados.`,
+      });
+    };
+    reader.readAsText(file);
+    
+    // Reset input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const updateStatus = (id: string, newStatus: string) => {
     setAssets(prev => prev.map(asset => 
       asset.id === id ? { ...asset, status: newStatus } : asset
@@ -124,6 +163,17 @@ export default function AssetsList() {
             </p>
           </div>
           <div className="flex gap-2">
+            <input
+              type="file"
+              ref={fileInputRef}
+              className="hidden"
+              accept=".csv"
+              onChange={handleFileChange}
+            />
+            <IndustrialButton variant="outline" onClick={handleImportClick}>
+              <Upload className="mr-2 h-4 w-4" />
+              IMPORTAR CSV
+            </IndustrialButton>
             <IndustrialButton variant="outline" onClick={exportToCSV}>
               <Download className="mr-2 h-4 w-4" />
               EXPORTAR CSV

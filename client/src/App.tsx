@@ -9,6 +9,8 @@ import AssetsList from "./pages/AssetsList";
 import AssetDetail from "./pages/AssetDetail";
 import Scanner from "./pages/Scanner";
 import Maintenance from "./pages/Maintenance";
+import MaintenanceKanban from "./pages/MaintenanceKanban";
+import AuditLog from "./pages/AuditLog";
 import Reports from "./pages/Reports";
 import QuickEvent from "./pages/QuickEvent";
 import NewAsset from "./pages/NewAsset";
@@ -24,7 +26,9 @@ function Router() {
       <Route path={"/assets/:id/print"} component={PrintLabel} />
       <Route path={"/assets/:id"} component={AssetDetail} />
       <Route path={"/scan"} component={Scanner} />
-      <Route path={"/maintenance"} component={Maintenance} />
+      <Route path="/maintenance" component={Maintenance} />
+      <Route path="/maintenance/kanban" component={MaintenanceKanban} />
+      <Route path={"/audit-log"} component={AuditLog} />
       <Route path={"/reports"} component={Reports} />
       <Route path={"/quick-event"} component={QuickEvent} />
       <Route path={"/404"} component={NotFound} />

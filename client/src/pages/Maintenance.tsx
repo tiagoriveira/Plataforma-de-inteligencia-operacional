@@ -3,7 +3,8 @@ import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { CheckSquare, Clock, AlertTriangle, Plus, Save, Trash2 } from "lucide-react";
+import { CheckSquare, Clock, AlertTriangle, Plus, Save, Trash2, LayoutDashboard } from "lucide-react";
+import { Link } from "wouter";
 
 export default function Maintenance() {
   const [checklistItems, setChecklistItems] = useState([
@@ -32,6 +33,12 @@ export default function Maintenance() {
             </p>
           </div>
           <div className="flex gap-2">
+            <Link href="/maintenance/kanban">
+              <IndustrialButton variant="outline">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                QUADRO KANBAN
+              </IndustrialButton>
+            </Link>
             <IndustrialButton variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10">
               <Trash2 className="mr-2 h-4 w-4" />
               CANCELAR
