@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { Search, Filter, Plus, MoreHorizontal, X } from "lucide-react";
+import { Search, Filter, Plus, MoreHorizontal, X, Download, Check } from "lucide-react";
 import { Link } from "wouter";
 import {
   Select,
@@ -12,8 +12,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { toast } from "sonner";
 
-const assets = [
+const initialAssets = [
   { id: "TOR-001", name: "TORNO CNC-01", type: "MÁQUINA", location: "SETOR A", status: "OPERACIONAL", lastEvent: "10:42" },
   { id: "PRE-020", name: "PRENSA HIDRÁULICA H-20", type: "MÁQUINA", location: "SETOR B", status: "MANUTENÇÃO", lastEvent: "09:15" },
   { id: "COR-005", name: "CORTADORA LASER L-05", type: "MÁQUINA", location: "SETOR A", status: "CRÍTICO", lastEvent: "08:30" },
@@ -23,10 +32,27 @@ const assets = [
 ];
 
 export default function AssetsList() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("TODOS");
-  const [typeFilter, setTypeFilter] = useState("TODOS");
-  const [showFilters, setShowFilters] = useState(false);
+  const [assets, setAssets] = useState(initialAssets);
+  const [search, setSearch] = useState(() => localStorage.getItem("assets_search") || "");
+  const [statusFilter, setStatusFilter] = useState(() => localStorage.getItem("assets_status_filter") || "TODOS");
+  const [typeFilter, setTypeFilter] = useState(() => localStorage.getItem("assets_type_filter") || "TODOS");
+  const [showFilters, setShowFilters] = useState(() => localStorage.getItem("assets_show_filters") === "true");
+
+  useEffect(() => {
+    localStorage.setItem("assets_search", search);
+  }, [search]);
+
+  useEffect(() => {
+    localStorage.setItem("assets_status_filter", statusFilter);
+  }, [statusFilter]);
+
+  useEffect(() => {
+    localStorage.setItem("assets_type_filter", typeFilter);
+  }, [typeFilter]);
+
+  useEffect(() => {
+    localStorage.setItem("assets_show_filters", String(showFilters));
+  }, [showFilters]);
 
   const filteredAssets = useMemo(() => {
     return assets.filter((asset) => {
@@ -38,12 +64,51 @@ export default function AssetsList() {
 
       return matchesSearch && matchesStatus && matchesType;
     });
-  }, [search, statusFilter, typeFilter]);
+  }, [assets, search, statusFilter, typeFilter]);
 
   const clearFilters = () => {
     setSearch("");
     setStatusFilter("TODOS");
     setTypeFilter("TODOS");
+  };
+
+  const exportToCSV = () => {
+    const headers = ["ID", "NOME", "TIPO", "LOCALIZAÇÃO", "STATUS", "ÚLTIMO EVENTO"];
+    const rows = filteredAssets.map(asset => [
+      asset.id,
+      asset.name,
+      asset.type,
+      asset.location,
+      asset.status,
+      asset.lastEvent
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `ativos_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success("Exportação concluída!", {
+      description: `${filteredAssets.length} registros exportados para CSV.`,
+    });
+  };
+
+  const updateStatus = (id: string, newStatus: string) => {
+    setAssets(prev => prev.map(asset => 
+      asset.id === id ? { ...asset, status: newStatus } : asset
+    ));
+    toast.success("Status atualizado!", {
+      description: `O ativo ${id} agora está ${newStatus}.`,
+    });
   };
 
   return (
@@ -58,12 +123,18 @@ export default function AssetsList() {
               GERENCIAMENTO CENTRALIZADO // {filteredAssets.length} ITENS
             </p>
           </div>
-          <Link href="/assets/new">
-            <IndustrialButton>
-              <Plus className="mr-2 h-4 w-4" />
-              NOVO ATIVO
+          <div className="flex gap-2">
+            <IndustrialButton variant="outline" onClick={exportToCSV}>
+              <Download className="mr-2 h-4 w-4" />
+              EXPORTAR CSV
             </IndustrialButton>
-          </Link>
+            <Link href="/assets/new">
+              <IndustrialButton>
+                <Plus className="mr-2 h-4 w-4" />
+                NOVO ATIVO
+              </IndustrialButton>
+            </Link>
+          </div>
         </div>
 
         <IndustrialCard className="p-4">
@@ -158,9 +229,33 @@ export default function AssetsList() {
                         <StatusBadge status={asset.status} />
                       </td>
                       <td className="px-4 py-3 text-right">
-                        <IndustrialButton variant="ghost" size="icon" className="h-8 w-8">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </IndustrialButton>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <IndustrialButton variant="ghost" size="icon" className="h-8 w-8">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </IndustrialButton>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Ações</DropdownMenuLabel>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/assets/${asset.id}`}>Ver Detalhes</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuLabel>Alterar Status</DropdownMenuLabel>
+                            <DropdownMenuItem onClick={() => updateStatus(asset.id, "OPERACIONAL")}>
+                              <div className="w-2 h-2 rounded-full bg-green-500 mr-2" />
+                              Operacional
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(asset.id, "MANUTENÇÃO")}>
+                              <div className="w-2 h-2 rounded-full bg-yellow-500 mr-2" />
+                              Manutenção
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => updateStatus(asset.id, "CRÍTICO")}>
+                              <div className="w-2 h-2 rounded-full bg-red-500 mr-2" />
+                              Crítico
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </td>
                     </tr>
                   ))
