@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
-import { Activity, AlertTriangle, ArrowRight } from "lucide-react";
+import { Activity, AlertTriangle, ArrowRight, Box as BoxIcon, Wrench as WrenchIcon, QrCode as QrCodeIcon, BrainCircuit } from "lucide-react";
 import { Link } from "wouter";
 import {
   DndContext,
@@ -11,7 +11,6 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragOverlay,
 } from "@dnd-kit/core";
 import {
   arrayMove,
@@ -21,6 +20,7 @@ import {
   rectSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { getPredictiveAlerts } from "@/lib/predictiveAI";
 
 // --- Components for Drag & Drop ---
 
@@ -59,6 +59,8 @@ export default function Home() {
     "kpi-critical",
   ]);
 
+  const [predictiveAlerts, setPredictiveAlerts] = useState<any[]>([]);
+
   // Load saved layout on mount
   useEffect(() => {
     const savedLayout = localStorage.getItem("dashboard-layout");
@@ -69,6 +71,10 @@ export default function Home() {
         console.error("Failed to parse saved layout", e);
       }
     }
+    
+    // Carrega alertas preditivos (IA Layer 2)
+    const alerts = getPredictiveAlerts();
+    setPredictiveAlerts(alerts);
   }, []);
 
   // Save layout on change
@@ -179,6 +185,35 @@ export default function Home() {
             </div>
           </SortableContext>
         </DndContext>
+
+        {/* Predictive Alerts Section (IA Layer 2) */}
+        {predictiveAlerts.length > 0 && (
+            <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="flex items-center gap-2 mb-4">
+                    <BrainCircuit className="h-5 w-5 text-purple-500" />
+                    <h2 className="text-lg font-bold font-mono uppercase text-purple-500">
+                        Insights Preditivos (IA)
+                    </h2>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {predictiveAlerts.map((alert) => (
+                        <div key={alert.assetId} className="bg-purple-500/5 border border-purple-500/20 p-4 rounded-lg flex items-start gap-4">
+                            <div className="bg-purple-500/10 p-2 rounded-full">
+                                <AlertTriangle className="h-5 w-5 text-purple-500" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-sm text-foreground">{alert.assetId}</h3>
+                                <p className="text-xs text-muted-foreground mt-1">{alert.recommendation}</p>
+                                <div className="mt-2 flex gap-4 text-xs font-mono">
+                                    <span className="text-purple-400">MTBF: {alert.mtbf}h</span>
+                                    <span className="text-purple-400">Confiabilidade: {alert.reliability}%</span>
+                                </div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        )}
 
         {/* Main Content Split */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -318,136 +353,54 @@ function KpiCard({
     <IndustrialCard className="h-full">
       <div className="p-6">
         <div className="flex items-center justify-between mb-4">
-          <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-            {title}
-          </span>
-          {Icon && (
-            <Icon
-              className={`h-4 w-4 ${statusColors[status] || statusColors.default}`}
-            />
-          )}
-        </div>
-        <div className="flex items-end gap-2">
-          <span
-            className={`text-4xl font-bold font-mono ${statusColors[status] || statusColors.default}`}
-          >
-            {value}
-          </span>
-          {trend && (
-            <span className="text-xs font-mono text-primary mb-1.5 bg-primary/10 px-1 py-0.5 rounded">
-              {trend}
-            </span>
-          )}
-        </div>
-        {trendLabel && (
-          <div className="mt-2 text-xs text-muted-foreground font-mono">
-            {trendLabel}
+          <div className={`p-2 rounded-md bg-accent/10 ${statusColors[status]}`}>
+            <Icon className="h-5 w-5" />
           </div>
-        )}
+          {trend && (
+            <div className="text-xs font-mono text-green-500 bg-green-500/10 px-2 py-1 rounded">
+              {trend}
+            </div>
+          )}
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-sm font-medium text-muted-foreground font-mono uppercase tracking-wider">
+            {title}
+          </h3>
+          <div className="text-3xl font-bold font-mono">{value}</div>
+          {trendLabel && (
+            <p className="text-xs text-muted-foreground">{trendLabel}</p>
+          )}
+        </div>
       </div>
     </IndustrialCard>
   );
 }
 
 function ActivityItem({ time, asset, action, user, status }: any) {
-  const statusBorders: Record<string, string> = {
+  const statusColors: Record<string, string> = {
     success: "border-l-green-500",
     warning: "border-l-yellow-500",
     destructive: "border-l-red-500",
-    default: "border-l-primary",
   };
 
   return (
     <div
-      className={`flex items-center justify-between p-4 bg-card border border-border border-l-4 ${statusBorders[status] || statusBorders.default} hover:bg-accent/5 transition-colors rounded-r-md shadow-sm`}
+      className={`bg-card border border-border border-l-4 p-4 rounded-r-md shadow-sm hover:shadow-md transition-all ${statusColors[status]}`}
     >
-      <div className="flex items-center gap-4">
-        <div className="font-mono text-xs text-muted-foreground w-12">
-          {time}
-        </div>
-        <div>
-          <div className="font-bold text-sm uppercase tracking-wide">
-            {asset}
+      <div className="flex justify-between items-start">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-mono text-muted-foreground">
+              {time}
+            </span>
+            <span className="font-bold text-sm text-foreground">{asset}</span>
           </div>
-          <div className="text-xs text-muted-foreground font-mono">
-            {action}
-          </div>
+          <p className="text-sm text-muted-foreground">{action}</p>
         </div>
-      </div>
-      <div className="text-xs font-mono bg-secondary px-2 py-1 text-secondary-foreground rounded">
-        {user}
+        <div className="px-2 py-1 bg-accent/10 rounded text-xs font-mono font-medium">
+          {user}
+        </div>
       </div>
     </div>
-  );
-}
-
-// Icons
-function BoxIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-      <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-      <line x1="12" y1="22.08" x2="12" y2="12" />
-    </svg>
-  );
-}
-
-function QrCodeIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="5" height="5" x="3" y="3" rx="1" />
-      <rect width="5" height="5" x="16" y="3" rx="1" />
-      <rect width="5" height="5" x="3" y="16" rx="1" />
-      <path d="M21 16h-3a2 2 0 0 0-2 2v3" />
-      <path d="M21 21v.01" />
-      <path d="M12 7v3a2 2 0 0 1-2 2H7" />
-      <path d="M3 12h.01" />
-      <path d="M12 3h.01" />
-      <path d="M12 16v.01" />
-      <path d="M16 12h1" />
-      <path d="M21 12v.01" />
-      <path d="M12 21v-1" />
-    </svg>
-  );
-}
-
-function WrenchIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />
-    </svg>
   );
 }
