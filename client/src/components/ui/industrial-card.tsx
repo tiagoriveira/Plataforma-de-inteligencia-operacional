@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "@/lib/utils"
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 const IndustrialCard = React.forwardRef<
   HTMLDivElement,
@@ -8,15 +8,13 @@ const IndustrialCard = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "rounded-none border border-border bg-card text-card-foreground shadow-sm relative overflow-hidden",
-      "before:absolute before:top-0 before:left-0 before:w-3 before:h-3 before:border-t before:border-l before:border-primary/50 before:content-['']",
-      "after:absolute after:bottom-0 after:right-0 after:w-3 after:h-3 after:border-b after:border-r after:border-primary/50 after:content-['']",
+      "rounded-xl border border-border bg-card text-card-foreground shadow-sm transition-all hover:shadow-md",
       className
     )}
     {...props}
   />
-))
-IndustrialCard.displayName = "IndustrialCard"
+));
+IndustrialCard.displayName = "IndustrialCard";
 
 const IndustrialCardHeader = React.forwardRef<
   HTMLDivElement,
@@ -24,11 +22,11 @@ const IndustrialCardHeader = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex flex-col space-y-1.5 p-6 border-b border-border/40", className)}
+    className={cn("flex flex-col space-y-1.5 p-6", className)}
     {...props}
   />
-))
-IndustrialCardHeader.displayName = "IndustrialCardHeader"
+));
+IndustrialCardHeader.displayName = "IndustrialCardHeader";
 
 const IndustrialCardTitle = React.forwardRef<
   HTMLParagraphElement,
@@ -37,13 +35,13 @@ const IndustrialCardTitle = React.forwardRef<
   <h3
     ref={ref}
     className={cn(
-      "text-lg font-semibold leading-none tracking-tight font-mono uppercase text-primary/90",
+      "text-lg font-semibold leading-none tracking-tight text-foreground",
       className
     )}
     {...props}
   />
-))
-IndustrialCardTitle.displayName = "IndustrialCardTitle"
+));
+IndustrialCardTitle.displayName = "IndustrialCardTitle";
 
 const IndustrialCardDescription = React.forwardRef<
   HTMLParagraphElement,
@@ -51,19 +49,19 @@ const IndustrialCardDescription = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <p
     ref={ref}
-    className={cn("text-sm text-muted-foreground font-sans", className)}
+    className={cn("text-sm text-muted-foreground", className)}
     {...props}
   />
-))
-IndustrialCardDescription.displayName = "IndustrialCardDescription"
+));
+IndustrialCardDescription.displayName = "IndustrialCardDescription";
 
 const IndustrialCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("p-6 pt-4", className)} {...props} />
-))
-IndustrialCardContent.displayName = "IndustrialCardContent"
+  <div ref={ref} className={cn("p-6 pt-0", className)} {...props} />
+));
+IndustrialCardContent.displayName = "IndustrialCardContent";
 
 const IndustrialCardFooter = React.forwardRef<
   HTMLDivElement,
@@ -74,8 +72,8 @@ const IndustrialCardFooter = React.forwardRef<
     className={cn("flex items-center p-6 pt-0", className)}
     {...props}
   />
-))
-IndustrialCardFooter.displayName = "IndustrialCardFooter"
+));
+IndustrialCardFooter.displayName = "IndustrialCardFooter";
 
 export {
   IndustrialCard,
@@ -84,4 +82,4 @@ export {
   IndustrialCardTitle,
   IndustrialCardDescription,
   IndustrialCardContent,
-}
+};
