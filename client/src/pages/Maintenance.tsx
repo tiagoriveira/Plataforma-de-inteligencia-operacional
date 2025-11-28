@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { CheckSquare, Clock, AlertTriangle, Plus, Save, Trash2, LayoutDashboard, BarChart } from "lucide-react";
+import { CheckSquare, Clock, AlertTriangle, Plus, Save, Trash2, LayoutDashboard, BarChart, MessageSquare, Send } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Maintenance() {
@@ -14,10 +14,29 @@ export default function Maintenance() {
     { id: 4, text: "Testar parada de emergência", checked: false },
   ]);
 
+  const [comments, setComments] = useState([
+    { id: 1, user: "Op. Silva", text: "Máquina apresentando ruído anormal na partida.", time: "08:15" },
+    { id: 2, user: "Téc. Santos", text: "Ciente. Vou verificar o rolamento principal.", time: "08:30" }
+  ]);
+
+  const [newComment, setNewComment] = useState("");
+
   const toggleItem = (id: number) => {
     setChecklistItems(items => 
       items.map(item => item.id === id ? { ...item, checked: !item.checked } : item)
     );
+  };
+
+  const handleAddComment = () => {
+    if (newComment.trim()) {
+      setComments([...comments, { 
+        id: comments.length + 1, 
+        user: "Você", 
+        text: newComment, 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      }]);
+      setNewComment("");
+    }
   };
 
   return (
@@ -137,6 +156,43 @@ export default function Maintenance() {
                     <IndustrialButton variant="ghost" size="sm" className="text-muted-foreground hover:text-primary">
                       <Plus className="mr-2 h-3 w-3" />
                       ADICIONAR ITEM
+                    </IndustrialButton>
+                  </div>
+                </div>
+              </IndustrialCardContent>
+            </IndustrialCard>
+
+            {/* Seção de Comentários */}
+            <IndustrialCard>
+              <IndustrialCardHeader>
+                <IndustrialCardTitle className="flex items-center gap-2">
+                  <MessageSquare className="h-4 w-4" />
+                  Comentários e Observações
+                </IndustrialCardTitle>
+              </IndustrialCardHeader>
+              <IndustrialCardContent>
+                <div className="space-y-4">
+                  <div className="space-y-3 max-h-[200px] overflow-y-auto pr-2">
+                    {comments.map((comment) => (
+                      <div key={comment.id} className="bg-muted/30 p-3 rounded-lg border border-border">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="font-bold text-xs text-primary">{comment.user}</span>
+                          <span className="text-xs text-muted-foreground">{comment.time}</span>
+                        </div>
+                        <p className="text-sm text-foreground">{comment.text}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex gap-2 pt-2">
+                    <IndustrialInput 
+                      placeholder="Adicionar comentário..." 
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+                    />
+                    <IndustrialButton onClick={handleAddComment} disabled={!newComment.trim()}>
+                      <Send className="h-4 w-4" />
                     </IndustrialButton>
                   </div>
                 </div>
