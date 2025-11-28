@@ -10,7 +10,9 @@ import AssetDetail from "./pages/AssetDetail";
 import Scanner from "./pages/Scanner";
 import Maintenance from "./pages/Maintenance";
 import MaintenanceKanban from "./pages/MaintenanceKanban";
+import MaintenanceKPIs from "./pages/MaintenanceKPIs";
 import AuditLog from "./pages/AuditLog";
+import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
 import QuickEvent from "./pages/QuickEvent";
 import NewAsset from "./pages/NewAsset";
@@ -28,7 +30,9 @@ function Router() {
       <Route path={"/scan"} component={Scanner} />
       <Route path="/maintenance" component={Maintenance} />
       <Route path="/maintenance/kanban" component={MaintenanceKanban} />
-      <Route path={"/audit-log"} component={AuditLog} />
+      <Route path="/maintenance/kpis" component={MaintenanceKPIs} />
+      <Route path="/audit-log" component={AuditLog} />
+      <Route path="/settings" component={Settings} />
       <Route path={"/reports"} component={Reports} />
       <Route path={"/quick-event"} component={QuickEvent} />
       <Route path={"/404"} component={NotFound} />

@@ -3,7 +3,7 @@ import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { CheckSquare, Clock, AlertTriangle, Plus, Save, Trash2, LayoutDashboard } from "lucide-react";
+import { CheckSquare, Clock, AlertTriangle, Plus, Save, Trash2, LayoutDashboard, BarChart } from "lucide-react";
 import { Link } from "wouter";
 
 export default function Maintenance() {
@@ -34,9 +34,15 @@ export default function Maintenance() {
           </div>
           <div className="flex gap-2">
             <Link href="/maintenance/kanban">
-              <IndustrialButton variant="outline">
-                <LayoutDashboard className="mr-2 h-4 w-4" />
+              <IndustrialButton variant="outline" className="flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4" />
                 QUADRO KANBAN
+              </IndustrialButton>
+            </Link>
+            <Link href="/maintenance/kpis">
+              <IndustrialButton variant="outline" className="flex items-center gap-2">
+                <BarChart className="h-4 w-4" />
+                DASHBOARD KPIs
               </IndustrialButton>
             </Link>
             <IndustrialButton variant="outline" className="text-destructive border-destructive/50 hover:bg-destructive/10">
