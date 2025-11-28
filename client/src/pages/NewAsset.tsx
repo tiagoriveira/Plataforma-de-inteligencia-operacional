@@ -5,12 +5,16 @@ import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
 import { Save, ArrowLeft, Upload } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { toast } from "sonner";
 
 export default function NewAsset() {
   const [, setLocation] = useLocation();
 
   const handleSave = () => {
     // Simulate save
+    toast.success("Ativo cadastrado com sucesso!", {
+      description: "O novo ativo foi adicionado ao inventário.",
+    });
     setLocation("/assets");
   };
 
@@ -51,7 +55,7 @@ export default function NewAsset() {
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-mono text-muted-foreground uppercase">Tipo *</label>
-                <select className="flex h-10 w-full rounded-none border-b-2 border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:border-primary">
+                <select className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono focus-visible:outline-none focus-visible:border-primary focus-visible:ring-1 focus-visible:ring-ring">
                   <option value="">SELECIONE...</option>
                   <option value="MAQUINA">MÁQUINA</option>
                   <option value="FERRAMENTA">FERRAMENTA</option>
@@ -69,7 +73,7 @@ export default function NewAsset() {
             <div className="space-y-2">
               <label className="text-xs font-mono text-muted-foreground uppercase">Descrição Detalhada</label>
               <textarea 
-                className="w-full bg-background border border-input p-2 text-sm font-mono h-24 focus:border-primary outline-none"
+                className="w-full bg-background border border-input rounded-md p-2 text-sm font-mono h-24 focus:border-primary outline-none focus:ring-1 focus:ring-ring"
                 placeholder="Especificações técnicas, observações importantes..."
               />
             </div>
@@ -100,7 +104,7 @@ export default function NewAsset() {
             <IndustrialCardTitle>Mídia e Documentos</IndustrialCardTitle>
           </IndustrialCardHeader>
           <IndustrialCardContent>
-            <div className="border-2 border-dashed border-border hover:border-primary hover:bg-accent/5 transition-colors p-8 flex flex-col items-center justify-center cursor-pointer">
+            <div className="border-2 border-dashed border-border rounded-md hover:border-primary hover:bg-accent/5 transition-colors p-8 flex flex-col items-center justify-center cursor-pointer">
               <Upload className="h-8 w-8 text-muted-foreground mb-2" />
               <span className="text-sm font-mono text-muted-foreground">ARRASTE FOTOS OU DOCUMENTOS AQUI</span>
               <span className="text-xs text-muted-foreground mt-1">(JPG, PNG, PDF - MÁX 5MB)</span>

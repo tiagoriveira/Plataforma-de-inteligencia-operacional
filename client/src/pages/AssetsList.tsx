@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useState, useMemo } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { Search, Filter, Plus, MoreHorizontal } from "lucide-react";
+import { Search, Filter, Plus, MoreHorizontal, X } from "lucide-react";
 import { Link } from "wouter";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const assets = [
   { id: "TOR-001", name: "TORNO CNC-01", type: "MÁQUINA", location: "SETOR A", status: "OPERACIONAL", lastEvent: "10:42" },
@@ -16,6 +23,29 @@ const assets = [
 ];
 
 export default function AssetsList() {
+  const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("TODOS");
+  const [typeFilter, setTypeFilter] = useState("TODOS");
+  const [showFilters, setShowFilters] = useState(false);
+
+  const filteredAssets = useMemo(() => {
+    return assets.filter((asset) => {
+      const matchesSearch =
+        asset.name.toLowerCase().includes(search.toLowerCase()) ||
+        asset.id.toLowerCase().includes(search.toLowerCase());
+      const matchesStatus = statusFilter === "TODOS" || asset.status === statusFilter;
+      const matchesType = typeFilter === "TODOS" || asset.type === typeFilter;
+
+      return matchesSearch && matchesStatus && matchesType;
+    });
+  }, [search, statusFilter, typeFilter]);
+
+  const clearFilters = () => {
+    setSearch("");
+    setStatusFilter("TODOS");
+    setTypeFilter("TODOS");
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -25,7 +55,7 @@ export default function AssetsList() {
               Inventário de Ativos
             </h1>
             <p className="text-muted-foreground mt-1 font-mono text-sm">
-              GERENCIAMENTO CENTRALIZADO // 142 ITENS
+              GERENCIAMENTO CENTRALIZADO // {filteredAssets.length} ITENS
             </p>
           </div>
           <Link href="/assets/new">
@@ -37,15 +67,69 @@ export default function AssetsList() {
         </div>
 
         <IndustrialCard className="p-4">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-              <IndustrialInput placeholder="BUSCAR POR ID, NOME OU TIPO..." className="pl-9" />
+          <div className="space-y-4 mb-6">
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+                <IndustrialInput
+                  placeholder="BUSCAR POR ID, NOME OU TIPO..."
+                  className="pl-9"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+              <IndustrialButton
+                variant={showFilters ? "default" : "outline"}
+                className="w-full md:w-auto"
+                onClick={() => setShowFilters(!showFilters)}
+              >
+                <Filter className="mr-2 h-4 w-4" />
+                FILTROS
+              </IndustrialButton>
             </div>
-            <IndustrialButton variant="outline" className="w-full md:w-auto">
-              <Filter className="mr-2 h-4 w-4" />
-              FILTROS
-            </IndustrialButton>
+
+            {showFilters && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-accent/5 rounded-md border border-border animate-in slide-in-from-top-2">
+                <div className="space-y-2">
+                  <label className="text-xs font-mono font-medium text-muted-foreground">STATUS</label>
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TODOS">TODOS</SelectItem>
+                      <SelectItem value="OPERACIONAL">OPERACIONAL</SelectItem>
+                      <SelectItem value="MANUTENÇÃO">MANUTENÇÃO</SelectItem>
+                      <SelectItem value="CRÍTICO">CRÍTICO</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-xs font-mono font-medium text-muted-foreground">TIPO</label>
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="TODOS">TODOS</SelectItem>
+                      <SelectItem value="MÁQUINA">MÁQUINA</SelectItem>
+                      <SelectItem value="VEÍCULO">VEÍCULO</SelectItem>
+                      <SelectItem value="FERRAMENTA">FERRAMENTA</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-end">
+                  <IndustrialButton
+                    variant="ghost"
+                    className="w-full text-muted-foreground hover:text-destructive"
+                    onClick={clearFilters}
+                  >
+                    <X className="mr-2 h-4 w-4" />
+                    LIMPAR FILTROS
+                  </IndustrialButton>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="overflow-x-auto">
@@ -61,24 +145,32 @@ export default function AssetsList() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
-                {assets.map((asset) => (
-                  <tr key={asset.id} className="hover:bg-accent/5 transition-colors group">
-                    <td className="px-4 py-3 font-mono text-primary font-bold">
-                      <Link href={`/assets/${asset.id}`}>{asset.id}</Link>
-                    </td>
-                    <td className="px-4 py-3 font-medium">{asset.name}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{asset.type}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{asset.location}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={asset.status} />
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <IndustrialButton variant="ghost" size="icon" className="h-8 w-8">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </IndustrialButton>
+                {filteredAssets.length > 0 ? (
+                  filteredAssets.map((asset) => (
+                    <tr key={asset.id} className="hover:bg-accent/5 transition-colors group">
+                      <td className="px-4 py-3 font-mono text-primary font-bold">
+                        <Link href={`/assets/${asset.id}`}>{asset.id}</Link>
+                      </td>
+                      <td className="px-4 py-3 font-medium">{asset.name}</td>
+                      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">{asset.type}</td>
+                      <td className="px-4 py-3 font-mono text-xs">{asset.location}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={asset.status} />
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <IndustrialButton variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </IndustrialButton>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
+                      Nenhum ativo encontrado com os filtros selecionados.
                     </td>
                   </tr>
-                ))}
+                )}
               </tbody>
             </table>
           </div>
@@ -96,7 +188,7 @@ function StatusBadge({ status }: { status: string }) {
   };
 
   return (
-    <span className={`inline-flex items-center px-2 py-1 rounded-none text-xs font-mono font-medium border ${styles[status] || styles.OPERACIONAL}`}>
+    <span className={`inline-flex items-center px-2 py-1 rounded-md text-xs font-mono font-medium border ${styles[status] || styles.OPERACIONAL}`}>
       <span className={`w-1.5 h-1.5 rounded-full mr-2 ${status === 'OPERACIONAL' ? 'bg-green-500' : status === 'MANUTENÇÃO' ? 'bg-yellow-500' : 'bg-red-500'}`} />
       {status}
     </span>

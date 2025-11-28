@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
@@ -58,6 +58,23 @@ export default function Home() {
     "kpi-maintenance",
     "kpi-critical",
   ]);
+
+  // Load saved layout on mount
+  useEffect(() => {
+    const savedLayout = localStorage.getItem("dashboard-layout");
+    if (savedLayout) {
+      try {
+        setItems(JSON.parse(savedLayout));
+      } catch (e) {
+        console.error("Failed to parse saved layout", e);
+      }
+    }
+  }, []);
+
+  // Save layout on change
+  useEffect(() => {
+    localStorage.setItem("dashboard-layout", JSON.stringify(items));
+  }, [items]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
