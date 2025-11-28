@@ -2,14 +2,18 @@ import React, { useState } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
-import { Camera, CheckCircle2, Clock, ArrowLeft } from "lucide-react";
+import { Camera, CheckCircle2, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
+import { standardizeText, suggestCategory } from "@/lib/smartSecretary";
+import { toast } from "sonner";
 
 export default function QuickEvent() {
   const [, setLocation] = useLocation();
   const [step, setStep] = useState(1);
   const [eventType, setEventType] = useState("");
   const [photoTaken, setPhotoTaken] = useState(false);
+  const [observation, setObservation] = useState("");
+  const [isStandardizing, setIsStandardizing] = useState(false);
 
   const eventTypes = [
     { id: "CHECKIN", label: "CHECK-IN OPERACIONAL", color: "text-green-500 border-green-500/50 hover:bg-green-500/10" },
@@ -17,6 +21,39 @@ export default function QuickEvent() {
     { id: "INSPECTION", label: "INSPEÇÃO VISUAL", color: "text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10" },
     { id: "ISSUE", label: "REPORTAR PROBLEMA", color: "text-red-500 border-red-500/50 hover:bg-red-500/10" },
   ];
+
+  const handleObservationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setObservation(e.target.value);
+  };
+
+  const handleBlur = () => {
+    if (observation.trim().length > 3) {
+      setIsStandardizing(true);
+      // Simula um pequeno delay para "pensar" (UX)
+      setTimeout(() => {
+        const standardized = standardizeText(observation);
+        if (standardized !== observation) {
+          setObservation(standardized);
+          toast.info("Texto padronizado pela IA", {
+            description: "Descrição ajustada para o padrão técnico.",
+            icon: <Sparkles className="h-4 w-4 text-blue-500" />,
+          });
+        }
+        
+        // Sugere categoria se for um problema
+        if (eventType === "ISSUE") {
+            const category = suggestCategory(standardized);
+            if (category) {
+                toast.success(`Categoria sugerida: ${category}`, {
+                    icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
+                });
+            }
+        }
+        
+        setIsStandardizing(false);
+      }, 500);
+    }
+  };
 
   const handleSave = () => {
     setStep(3);
@@ -83,12 +120,25 @@ export default function QuickEvent() {
                   )}
                 </div>
                 
-                <div className="mt-4">
-                  <label className="text-xs font-mono text-muted-foreground uppercase mb-2 block">Observação (Opcional)</label>
+                <div className="mt-4 relative">
+                  <div className="flex justify-between items-center mb-2">
+                    <label className="text-xs font-mono text-muted-foreground uppercase block">Observação (Opcional)</label>
+                    {isStandardizing && (
+                        <span className="text-xs font-mono text-blue-500 flex items-center gap-1 animate-pulse">
+                            <Sparkles className="h-3 w-3" /> Padronizando...
+                        </span>
+                    )}
+                  </div>
                   <textarea 
-                    className="w-full bg-background border border-input p-2 text-sm font-mono h-20 focus:border-primary outline-none"
-                    placeholder="Digite uma observação rápida..."
+                    value={observation}
+                    onChange={handleObservationChange}
+                    onBlur={handleBlur}
+                    className="w-full bg-background border border-input p-2 text-sm font-mono h-20 focus:border-primary outline-none transition-all"
+                    placeholder="Digite uma observação rápida (ex: vazamento oleo)..."
                   />
+                  <p className="text-[10px] text-muted-foreground mt-1">
+                    * A IA padronizará o texto automaticamente ao sair do campo.
+                  </p>
                 </div>
               </IndustrialCardContent>
             </IndustrialCard>
