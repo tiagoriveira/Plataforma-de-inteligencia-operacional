@@ -39,9 +39,11 @@ export default function AssetDetail() {
               <Printer className="mr-2 h-4 w-4" />
               IMPRIMIR ETIQUETA
             </IndustrialButton>
-            <IndustrialButton>
-              REGISTRAR EVENTO
-            </IndustrialButton>
+            <Link href="/maintenance">
+              <IndustrialButton>
+                REGISTRAR MANUTENÇÃO
+              </IndustrialButton>
+            </Link>
           </div>
         </div>
 

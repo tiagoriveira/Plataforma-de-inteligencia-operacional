@@ -8,6 +8,8 @@ import Home from "./pages/Home";
 import AssetsList from "./pages/AssetsList";
 import AssetDetail from "./pages/AssetDetail";
 import Scanner from "./pages/Scanner";
+import Maintenance from "./pages/Maintenance";
+import Reports from "./pages/Reports";
 
 
 function Router() {
@@ -17,6 +19,8 @@ function Router() {
       <Route path={"/assets"} component={AssetsList} />
       <Route path={"/assets/:id"} component={AssetDetail} />
       <Route path={"/scan"} component={Scanner} />
+      <Route path={"/maintenance"} component={Maintenance} />
+      <Route path={"/reports"} component={Reports} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
