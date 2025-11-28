@@ -2,6 +2,8 @@ import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, QrCode, Settings, Box, Activity, Menu, X } from "lucide-react";
+import { ThemeToggle } from "./ThemeToggle";
+import { PageTransition } from "./PageTransition";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -24,9 +26,12 @@ export default function Layout({ children }: LayoutProps) {
       {/* Mobile Header */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-border bg-white z-50 shadow-sm">
         <div className="font-bold text-primary tracking-tight text-lg">Op.Intel</div>
-        <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-foreground">
-          {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-        </button>
+        <div className="flex items-center gap-2">
+          <ThemeToggle />
+          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-foreground">
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Sidebar Navigation */}
@@ -64,9 +69,12 @@ export default function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className="p-6 border-t border-border/50">
-          <div className="flex items-center gap-3 px-2">
-            <div className="h-2 w-2 rounded-full bg-green-500" />
-            <span className="text-xs font-medium text-muted-foreground">Sistema Online</span>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex items-center gap-3">
+              <div className="h-2 w-2 rounded-full bg-green-500" />
+              <span className="text-xs font-medium text-muted-foreground">Online</span>
+            </div>
+            <ThemeToggle />
           </div>
         </div>
       </aside>
@@ -74,7 +82,9 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative bg-background">
         <div className="relative z-10 p-6 md:p-10 max-w-7xl mx-auto">
-          {children}
+          <PageTransition key={location}>
+            {children}
+          </PageTransition>
         </div>
       </main>
     </div>
