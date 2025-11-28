@@ -28,10 +28,12 @@ export default function AssetsList() {
               GERENCIAMENTO CENTRALIZADO // 142 ITENS
             </p>
           </div>
-          <IndustrialButton>
-            <Plus className="mr-2 h-4 w-4" />
-            NOVO ATIVO
-          </IndustrialButton>
+          <Link href="/assets/new">
+            <IndustrialButton>
+              <Plus className="mr-2 h-4 w-4" />
+              NOVO ATIVO
+            </IndustrialButton>
+          </Link>
         </div>
 
         <IndustrialCard className="p-4">

@@ -10,6 +10,9 @@ import AssetDetail from "./pages/AssetDetail";
 import Scanner from "./pages/Scanner";
 import Maintenance from "./pages/Maintenance";
 import Reports from "./pages/Reports";
+import QuickEvent from "./pages/QuickEvent";
+import NewAsset from "./pages/NewAsset";
+import PrintLabel from "./pages/PrintLabel";
 
 
 function Router() {
@@ -17,10 +20,13 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/assets"} component={AssetsList} />
+      <Route path={"/assets/new"} component={NewAsset} />
+      <Route path={"/assets/:id/print"} component={PrintLabel} />
       <Route path={"/assets/:id"} component={AssetDetail} />
       <Route path={"/scan"} component={Scanner} />
       <Route path={"/maintenance"} component={Maintenance} />
       <Route path={"/reports"} component={Reports} />
+      <Route path={"/quick-event"} component={QuickEvent} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

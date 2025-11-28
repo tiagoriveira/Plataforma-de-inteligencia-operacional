@@ -35,13 +35,20 @@ export default function AssetDetail() {
             </div>
           </div>
           <div className="flex gap-2">
-            <IndustrialButton variant="outline">
-              <Printer className="mr-2 h-4 w-4" />
-              IMPRIMIR ETIQUETA
-            </IndustrialButton>
+            <Link href={`/assets/${id}/print`}>
+              <IndustrialButton variant="outline">
+                <Printer className="mr-2 h-4 w-4" />
+                IMPRIMIR ETIQUETA
+              </IndustrialButton>
+            </Link>
             <Link href="/maintenance">
-              <IndustrialButton>
+              <IndustrialButton className="hidden md:inline-flex">
                 REGISTRAR MANUTENÇÃO
+              </IndustrialButton>
+            </Link>
+            <Link href="/quick-event">
+              <IndustrialButton variant="secondary">
+                REGISTRO RÁPIDO
               </IndustrialButton>
             </Link>
           </div>
