@@ -1,7 +1,7 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, QrCode, Settings, Box, Activity, Menu, X, Shield } from "lucide-react";
+import { LayoutDashboard, QrCode, Settings, Box, Activity, Menu, X, Shield, History } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 import { PageTransition } from "./PageTransition";
 
@@ -17,6 +17,7 @@ export default function Layout({ children }: LayoutProps) {
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: Box, label: "Ativos", path: "/assets" },
     { icon: QrCode, label: "Scanner", path: "/scan" },
+    { icon: History, label: "Histórico (Log)", path: "/maintenance" },
     { icon: Activity, label: "Relatórios", path: "/reports" },
     { icon: Shield, label: "Auditoria", path: "/audit-log" },
     { icon: Settings, label: "Configurações", path: "/settings" },

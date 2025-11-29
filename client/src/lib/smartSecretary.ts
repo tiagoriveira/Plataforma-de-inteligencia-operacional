@@ -446,3 +446,60 @@ export function suggestCategory(description: string): string | null {
     
     return null;
 }
+
+/**
+ * Padroniza o texto de manutenção usando o dicionário e regex.
+ * @param text Texto original inserido pelo usuário
+ * @returns Texto padronizado
+ */
+export function standardizeMaintenanceText(text: string): string {
+  let standardized = text.toLowerCase();
+
+  // 1. Substituição direta pelo dicionário
+  for (const [key, value] of Object.entries(TERM_DICTIONARY)) {
+    // Regex para substituir palavra inteira ou frase
+    const regex = new RegExp(`\\b${key}\\b`, "gi");
+    if (regex.test(standardized)) {
+      standardized = standardized.replace(regex, value);
+    }
+  }
+
+  // 2. Capitalização de sentenças (se não foi substituído pelo dicionário)
+  // Se o texto ainda estiver todo minúsculo (exceto as substituições do dicionário que já têm maiúsculas)
+  // Vamos garantir que a primeira letra seja maiúscula.
+  if (standardized.length > 0) {
+      standardized = standardized.charAt(0).toUpperCase() + standardized.slice(1);
+  }
+
+  return standardized;
+}
+
+/**
+ * Valida o contexto da manutenção (ex: não permitir "Troca de Pneu" em um "Torno CNC").
+ * @param assetName Nome do ativo selecionado
+ * @param maintenanceType Tipo de manutenção ou descrição
+ * @returns Mensagem de aviso ou null se estiver tudo ok
+ */
+export function validateMaintenanceContext(assetName: string, maintenanceType: string): string | null {
+  const asset = assetName.toLowerCase();
+  const type = maintenanceType.toLowerCase();
+
+  // Regra 1: Ativos estacionários não têm pneus/rodas
+  if ((asset.includes("torno") || asset.includes("prensa") || asset.includes("fresa")) && 
+      (type.includes("pneu") || type.includes("roda") || type.includes("freio abs"))) {
+    return "Atenção: Este ativo estacionário geralmente não possui componentes de rodagem.";
+  }
+
+  // Regra 2: Equipamentos elétricos vs hidráulicos
+  if (asset.includes("painel") && (type.includes("oleo hidraulico") || type.includes("vazamento de agua"))) {
+    return "Atenção: Verifique se há sistemas hidráulicos neste painel elétrico (Risco de Curto).";
+  }
+
+  // Regra 3: Empilhadeiras precisam de verificação de segurança
+  if (asset.includes("empilhadeira") && type.includes("corretiva") && !type.includes("freio")) {
+     // Apenas um aviso suave
+     return null; 
+  }
+
+  return null;
+}
