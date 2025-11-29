@@ -3,7 +3,6 @@ import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
 import { LayoutDashboard, QrCode, Settings, Box, Activity, Menu, X, Shield, History } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
-import { PageTransition } from "./PageTransition";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -84,9 +83,8 @@ export default function Layout({ children }: LayoutProps) {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto relative bg-background">
         <div className="relative z-10 p-6 md:p-10 max-w-7xl mx-auto">
-          <PageTransition key={location}>
-            {children}
-          </PageTransition>
+          {/* Removed PageTransition for instant navigation (KISS) */}
+          {children}
         </div>
       </main>
     </div>
