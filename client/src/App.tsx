@@ -17,6 +17,7 @@ import Reports from "./pages/Reports";
 import QuickEvent from "./pages/QuickEvent";
 import NewAsset from "./pages/NewAsset";
 import PrintLabel from "./pages/PrintLabel";
+import { ReloadPrompt } from "./components/ReloadPrompt";
 
 
 function Router() {
@@ -56,6 +57,7 @@ function App() {
       >
         <TooltipProvider>
           <Toaster />
+          <ReloadPrompt />
           <Router />
         </TooltipProvider>
       </ThemeProvider>
