@@ -74,6 +74,29 @@ export default function PrintLabel() {
         <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 text-sm font-mono text-yellow-500 print:hidden">
           <p>DICA: Utilize papel adesivo industrial resistente a óleo e calor para maior durabilidade.</p>
         </div>
+
+        <IndustrialCard className="p-6 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border-amber-500/20 print:hidden">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="space-y-2">
+              <h3 className="text-lg font-bold font-mono text-amber-500 flex items-center gap-2">
+                <span className="text-2xl">🏷️</span>
+                Etiquetas Industriais Premium
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-md">
+                Garanta durabilidade extrema com nossas etiquetas de policarbonato. Resistentes a óleo, solventes e altas temperaturas. Já vêm com QR Code impresso a laser.
+              </p>
+            </div>
+            <a
+              href="https://loja.opintel.com.br/etiquetas-premium"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IndustrialButton className="bg-amber-500 hover:bg-amber-600 text-black border-amber-600 whitespace-nowrap">
+                COMPRAR AGORA
+              </IndustrialButton>
+            </a>
+          </div>
+        </IndustrialCard>
       </div>
     </Layout>
   );

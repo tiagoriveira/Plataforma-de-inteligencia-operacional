@@ -193,6 +193,7 @@ function TimelineItem({ date, title, user, description, type = "default" }: any)
     success: "bg-green-500 border-green-500",
     warning: "bg-yellow-500 border-yellow-500",
     destructive: "bg-red-500 border-red-500",
+    improvement: "bg-purple-500 border-purple-500",
   };
 
   return (

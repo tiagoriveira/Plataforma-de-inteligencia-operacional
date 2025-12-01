@@ -198,6 +198,7 @@ export default function Maintenance() {
                         <SelectItem value="CORRETIVA">CORRETIVA</SelectItem>
                         <SelectItem value="PREVENTIVA">PREVENTIVA</SelectItem>
                         <SelectItem value="INSPEÇÃO">INSPEÇÃO</SelectItem>
+                  <SelectItem value="MELHORIA">MELHORIA</SelectItem>
                         <SelectItem value="MELHORIA">MELHORIA</SelectItem>
                       </SelectContent>
                     </Select>

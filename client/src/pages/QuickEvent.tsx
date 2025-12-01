@@ -20,6 +20,7 @@ export default function QuickEvent() {
     { id: "CHECKOUT", label: "CHECK-OUT OPERACIONAL", color: "text-blue-500 border-blue-500/50 hover:bg-blue-500/10" },
     { id: "INSPECTION", label: "INSPEÇÃO VISUAL", color: "text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10" },
     { id: "ISSUE", label: "REPORTAR PROBLEMA", color: "text-red-500 border-red-500/50 hover:bg-red-500/10" },
+    { id: "IMPROVEMENT", label: "SUGESTÃO DE MELHORIA", color: "text-purple-500 border-purple-500/50 hover:bg-purple-500/10" },
   ];
 
   const handleObservationChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {

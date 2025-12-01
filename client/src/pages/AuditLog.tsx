@@ -57,6 +57,7 @@ export default function AuditLog() {
                   <div className={`p-2 rounded-full border ${
                     log.action === 'ALERTA' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
                     log.action === 'MANUTENÇÃO' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
+                    log.action === 'MELHORIA' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' :
                     'bg-primary/10 border-primary/20 text-primary'
                   }`}>
                     <Shield className="h-5 w-5" />

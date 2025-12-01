@@ -163,6 +163,17 @@ export default function AssetsList() {
             </p>
           </div>
           <div className="flex gap-2">
+            <a
+              href="https://loja.opintel.com.br/etiquetas-premium"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="hidden md:flex"
+            >
+              <IndustrialButton variant="industrial" className="bg-amber-500 hover:bg-amber-600 text-black border-amber-600">
+                <span className="mr-2">🏷️</span>
+                COMPRAR ETIQUETAS PREMIUM
+              </IndustrialButton>
+            </a>
             <input
               type="file"
               ref={fileInputRef}
