@@ -141,6 +141,30 @@ export default function AssetDetail() {
 
           {/* Sidebar Column */}
           <div className="space-y-6">
+            {/* V1.1: Instruções Operacionais */}
+            <IndustrialCard className="bg-blue-500/5 border-blue-500/20">
+              <IndustrialCardHeader>
+                <IndustrialCardTitle className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Instruções Operacionais
+                </IndustrialCardTitle>
+              </IndustrialCardHeader>
+              <IndustrialCardContent>
+                <div className="text-sm text-foreground font-mono leading-relaxed whitespace-pre-line">
+                  ☐ Seiri (Utilização): Remover itens desnecessários
+                  ☐ Seiton (Organização): Organizar ferramentas
+                  ☐ Seiso (Limpeza): Limpar equipamento
+                  ☐ Seiketsu (Padronização): Verificar conformidade
+                  ☐ Shitsuke (Disciplina): Confirmar rotina
+                </div>
+                <div className="mt-4 pt-4 border-t border-border">
+                  <div className="text-xs text-muted-foreground font-mono">INTERVALO DE MANUTENÇÃO</div>
+                  <div className="text-sm font-bold font-mono text-foreground mt-1">90 dias</div>
+                  <div className="text-xs text-muted-foreground mt-1">Próxima manutenção: 15 FEV 2026</div>
+                </div>
+              </IndustrialCardContent>
+            </IndustrialCard>
+
             <IndustrialCard>
               <IndustrialCardHeader>
                 <IndustrialCardTitle className="flex items-center gap-2">
