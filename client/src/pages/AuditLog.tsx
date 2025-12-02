@@ -1,105 +1,239 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { Search, Shield, User, Clock, FileText, ArrowLeft } from "lucide-react";
+import { Search, Filter, X, Download, ArrowLeft, CheckCircle2, Clock, Eye, AlertTriangle, Wrench, TrendingUp } from "lucide-react";
 import { Link } from "wouter";
-
-const initialLogs = [
-  { id: 1, user: "Op. Silva", action: "CHECK-IN", target: "TORNO CNC-01", timestamp: "2025-11-28 10:42:15", details: "Início de turno operacional" },
-  { id: 2, user: "Téc. Santos", action: "MANUTENÇÃO", target: "PRENSA H-20", timestamp: "2025-11-28 09:15:30", details: "Troca de óleo hidráulico iniciada" },
-  { id: 3, user: "Sistema", action: "ALERTA", target: "CORTADORA L-05", timestamp: "2025-11-28 08:30:00", details: "Falha de sensor detectada automaticamente" },
-  { id: 4, user: "Admin", action: "CADASTRO", target: "NOVO ATIVO", timestamp: "2025-11-27 16:20:10", details: "Registro de Empilhadeira E-04" },
-  { id: 5, user: "Op. Costa", action: "CHECK-OUT", target: "EMPILHADEIRA E-03", timestamp: "2025-11-27 14:00:00", details: "Fim de turno" },
-];
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { toast } from "sonner";
+import { getEvents, type Event } from "@/lib/supabase";
 
 export default function AuditLog() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [logs] = useState(initialLogs);
+  const [typeFilter, setTypeFilter] = useState("TODOS");
+  const [showFilters, setShowFilters] = useState(false);
 
-  const filteredLogs = logs.filter(
-    (log) =>
-      log.user.toLowerCase().includes(search.toLowerCase()) ||
-      log.target.toLowerCase().includes(search.toLowerCase()) ||
-      log.action.toLowerCase().includes(search.toLowerCase())
-  );
+  useEffect(() => {
+    async function loadEvents() {
+      try {
+        const data = await getEvents();
+        setEvents(data);
+      } catch (error) {
+        console.error("Erro ao carregar eventos:", error);
+        toast.error("Erro ao carregar histórico");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadEvents();
+  }, []);
+
+  const filteredEvents = events.filter((event) => {
+    const matchesSearch =
+      event.operator?.toLowerCase().includes(search.toLowerCase()) ||
+      event.observation?.toLowerCase().includes(search.toLowerCase());
+    const matchesType = typeFilter === "TODOS" || event.type === typeFilter;
+
+    return matchesSearch && matchesType;
+  });
+
+  const clearFilters = () => {
+    setSearch("");
+    setTypeFilter("TODOS");
+  };
+
+  const exportToCSV = () => {
+    const headers = ["DATA/HORA", "TIPO", "OPERADOR", "OBSERVAÇÃO"];
+    const rows = filteredEvents.map(event => [
+      new Date(event.created_at).toLocaleString("pt-BR"),
+      event.type,
+      event.operator || "",
+      event.observation || "",
+    ]);
+
+    const csvContent = [headers, ...rows]
+      .map(row => row.map(cell => `"${cell}"`).join(","))
+      .join("\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = `historico_completo_${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+
+    toast.success("CSV exportado com sucesso!");
+  };
+
+  const getEventIcon = (type: string) => {
+    switch (type) {
+      case "CHECKIN": return <CheckCircle2 className="h-4 w-4 text-green-500" />;
+      case "CHECKOUT": return <Clock className="h-4 w-4 text-blue-500" />;
+      case "INSPECTION": return <Eye className="h-4 w-4 text-yellow-500" />;
+      case "ISSUE": return <AlertTriangle className="h-4 w-4 text-red-500" />;
+      case "MAINTENANCE": return <Wrench className="h-4 w-4 text-orange-500" />;
+      case "IMPROVEMENT": return <TrendingUp className="h-4 w-4 text-purple-500" />;
+      case "NONCONFORMITY": return <AlertTriangle className="h-4 w-4 text-orange-600" />;
+      default: return null;
+    }
+  };
+
+  const getEventLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      CHECKIN: "Check-in",
+      CHECKOUT: "Check-out",
+      INSPECTION: "Inspeção",
+      ISSUE: "Problema",
+      MAINTENANCE: "Manutenção",
+      IMPROVEMENT: "Melhoria",
+      NONCONFORMITY: "Problema Grave",
+    };
+    return labels[type] || type;
+  };
+
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground font-mono">Carregando histórico...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
       <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-4">
-          <Link href="/">
-            <IndustrialButton variant="ghost" size="icon">
-              <ArrowLeft className="h-5 w-5" />
-            </IndustrialButton>
-          </Link>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
-              HISTÓRICO COMPLETO
-            </h1>
-            <p className="text-muted-foreground mt-1 font-mono text-sm">
-              TODOS OS REGISTROS // {filteredLogs.length} ENCONTRADOS
-            </p>
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="flex items-center gap-4">
+            <Link href="/">
+              <IndustrialButton variant="outline" size="icon">
+                <ArrowLeft className="h-4 w-4" />
+              </IndustrialButton>
+            </Link>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
+                HISTÓRICO COMPLETO
+              </h1>
+              <p className="text-muted-foreground mt-1 font-mono text-sm">
+                {filteredEvents.length} DE {events.length} EVENTOS
+              </p>
+            </div>
           </div>
+
+          <IndustrialButton variant="outline" onClick={exportToCSV}>
+            <Download className="mr-2 h-4 w-4" />
+            EXPORTAR CSV
+          </IndustrialButton>
         </div>
 
         <IndustrialCard className="p-4">
-          <div className="relative mb-6">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
-            <IndustrialInput
-              placeholder="BUSCAR POR USUÁRIO, AÇÃO OU ALVO..."
-              className="pl-9"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
+          <div className="flex flex-col md:flex-row gap-3">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
+              <IndustrialInput
+                placeholder="Buscar por operador ou observação..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
+            <IndustrialButton
+              variant="outline"
+              onClick={() => setShowFilters(!showFilters)}
+              className="md:w-auto"
+            >
+              <Filter className="mr-2 h-4 w-4" />
+              FILTROS
+            </IndustrialButton>
+
+            {(search || typeFilter !== "TODOS") && (
+              <IndustrialButton
+                variant="ghost"
+                onClick={clearFilters}
+                className="md:w-auto"
+              >
+                <X className="mr-2 h-4 w-4" />
+                LIMPAR
+              </IndustrialButton>
+            )}
           </div>
 
-          <div className="space-y-4">
-            {filteredLogs.map((log) => (
-              <div
-                key={log.id}
-                className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-accent/5 transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <div className={`p-2 rounded-full border ${
-                    log.action === 'ALERTA' ? 'bg-red-500/10 border-red-500/20 text-red-500' :
-                    log.action === 'MANUTENÇÃO' ? 'bg-yellow-500/10 border-yellow-500/20 text-yellow-500' :
-                    log.action === 'NÃO CONFORMIDADE' ? 'bg-orange-500/10 border-orange-500/20 text-orange-500' :
-                    log.action === 'MELHORIA' ? 'bg-purple-500/10 border-purple-500/20 text-purple-500' :
-                    'bg-primary/10 border-primary/20 text-primary'
-                  }`}>
-                    <Shield className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="font-mono font-bold text-sm">{log.action}</span>
-                      <span className="text-xs text-muted-foreground">•</span>
-                      <span className="font-mono text-xs text-muted-foreground">{log.target}</span>
-                    </div>
-                    <p className="text-sm text-foreground">{log.details}</p>
-                    <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground font-mono">
-                      <div className="flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {log.user}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {log.timestamp}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-4 md:mt-0">
-                  <IndustrialButton variant="ghost" size="sm" className="text-xs font-mono">
-                    <FileText className="mr-2 h-3 w-3" />
-                    DETALHES
-                  </IndustrialButton>
-                </div>
+          {showFilters && (
+            <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div>
+                <label className="text-xs font-mono text-muted-foreground uppercase block mb-2">
+                  Tipo de Evento
+                </label>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">TODOS</SelectItem>
+                    <SelectItem value="CHECKIN">Check-in</SelectItem>
+                    <SelectItem value="CHECKOUT">Check-out</SelectItem>
+                    <SelectItem value="INSPECTION">Inspeção</SelectItem>
+                    <SelectItem value="ISSUE">Problema</SelectItem>
+                    <SelectItem value="MAINTENANCE">Manutenção</SelectItem>
+                    <SelectItem value="IMPROVEMENT">Melhoria</SelectItem>
+                    <SelectItem value="NONCONFORMITY">Problema Grave</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ))}
-          </div>
+            </div>
+          )}
         </IndustrialCard>
+
+        <div className="space-y-3">
+          {filteredEvents.length === 0 ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground font-mono">
+                Nenhum evento encontrado.
+              </p>
+            </div>
+          ) : (
+            filteredEvents.map((event) => (
+              <IndustrialCard key={event.id} className="p-4">
+                <div className="flex items-start gap-3">
+                  <div className="mt-0.5">{getEventIcon(event.type)}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-mono font-bold text-sm">
+                        {getEventLabel(event.type)}
+                      </span>
+                      <span className="text-xs text-muted-foreground font-mono whitespace-nowrap">
+                        {new Date(event.created_at).toLocaleString("pt-BR")}
+                      </span>
+                    </div>
+                    {event.operator && (
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Operador: {event.operator}
+                      </p>
+                    )}
+                    {event.observation && (
+                      <p className="text-sm mt-1 text-foreground">
+                        {event.observation}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </IndustrialCard>
+            ))
+          )}
+        </div>
       </div>
     </Layout>
   );

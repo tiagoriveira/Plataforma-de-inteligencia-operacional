@@ -18,14 +18,21 @@
 - [x] Criar helper functions (getAssets, createAsset, getEvents, createEvent, getKPIs)
 - [x] Substituir localStorage por queries Supabase em Home.tsx
 - [x] Substituir localStorage por queries Supabase em AssetsList.tsx
-- [ ] Substituir localStorage por queries Supabase em AssetDetail.tsx
-- [ ] Substituir localStorage por queries Supabase em QuickEvent.tsx
-- [ ] Substituir localStorage por queries Supabase em AuditLog.tsx
+- [x] Substituir localStorage por queries Supabase em AssetDetail.tsx
+- [x] Substituir localStorage por queries Supabase em QuickEvent.tsx
+- [x] Substituir localStorage por queries Supabase em AuditLog.tsx
 - [ ] Substituir localStorage por queries Supabase em Reports.tsx
 
 ## FASE 4: Migração de Dados
-- [ ] Popular tabela assets com dados iniciais (25 ativos)
-- [ ] Popular tabela events com histórico simulado (342 eventos)
+- [x] Popular tabela assets com dados iniciais (25 ativos)
+- [x] Popular tabela events com histórico simulado (342 eventos)
+- [x] Ajustar seed para 70% eventos no mês atual
+
+## FASE 5: Row Level Security (RLS)
+- [x] Habilitar RLS em assets e events
+- [x] Criar políticas de leitura pública
+- [x] Criar políticas de inserção pública
+- [x] Criar políticas de atualização pública
 - [ ] Validar integridade dos dados
 
 ## FASE 5: Autenticação

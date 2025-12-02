@@ -6,6 +6,7 @@ import { Camera, CheckCircle2, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { standardizeText, suggestCategory } from "@/lib/smartSecretary";
 import { toast } from "sonner";
+import { createEvent, getAssetByCode } from "@/lib/supabase";
 
 export default function QuickEvent() {
   const [, setLocation] = useLocation();
@@ -14,6 +15,7 @@ export default function QuickEvent() {
   const [photoTaken, setPhotoTaken] = useState(false);
   const [observation, setObservation] = useState("");
   const [isStandardizing, setIsStandardizing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const eventTypes = [
     { id: "CHECKIN", label: "CHECK-IN OPERACIONAL", color: "text-green-500 border-green-500/50 hover:bg-green-500/10" },
@@ -31,7 +33,6 @@ export default function QuickEvent() {
   const handleBlur = () => {
     if (observation.trim().length > 3) {
       setIsStandardizing(true);
-      // Simula um pequeno delay para "pensar" (UX)
       setTimeout(() => {
         const standardized = standardizeText(observation);
         if (standardized !== observation) {
@@ -42,7 +43,6 @@ export default function QuickEvent() {
           });
         }
         
-        // Sugere categoria se for um problema
         if (eventType === "ISSUE") {
             const category = suggestCategory(standardized);
             if (category) {
@@ -57,7 +57,7 @@ export default function QuickEvent() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // V1.1: Validar foto obrigatória para Problema Grave
     if (eventType === "NONCONFORMITY" && !photoTaken) {
       toast.error("Foto obrigatória para problema grave", {
@@ -66,10 +66,32 @@ export default function QuickEvent() {
       return;
     }
     
-    setStep(3);
-    setTimeout(() => {
-      setLocation("/assets/TOR-001");
-    }, 2000);
+    setSaving(true);
+    
+    try {
+      // Buscar ativo TOR-001 (demo - em produção seria via scanner)
+      const asset = await getAssetByCode("TOR-001");
+      
+      // Criar evento no Supabase
+      await createEvent({
+        asset_id: asset.id,
+        type: eventType,
+        operator: "Operador Demo",
+        observation: observation || null,
+        photo_url: photoTaken ? "https://placehold.co/800x600/png" : null,
+      });
+
+      setStep(3);
+      setTimeout(() => {
+        setLocation(`/assets/${asset.code}`);
+      }, 2000);
+    } catch (error) {
+      console.error("Erro ao salvar evento:", error);
+      toast.error("Erro ao salvar evento", {
+        description: "Tente novamente.",
+      });
+      setSaving(false);
+    }
   };
 
   return (
@@ -155,8 +177,12 @@ export default function QuickEvent() {
               </IndustrialCardContent>
             </IndustrialCard>
 
-            <IndustrialButton className="w-full h-14 text-lg" onClick={handleSave}>
-              CONFIRMAR REGISTRO
+            <IndustrialButton 
+              className="w-full h-14 text-lg" 
+              onClick={handleSave}
+              disabled={saving}
+            >
+              {saving ? "SALVANDO..." : "CONFIRMAR REGISTRO"}
             </IndustrialButton>
           </div>
         )}

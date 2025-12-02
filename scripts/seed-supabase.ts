@@ -58,15 +58,26 @@ async function seed() {
 
   console.log(`✅ ${insertedAssets.length} ativos inseridos com sucesso!`);
 
-  // Gerar eventos (342 eventos distribuídos nos últimos 60 dias)
+  // Gerar eventos (342 eventos: 70% no mês atual, 30% nos últimos 60 dias)
   console.log("📝 Gerando 342 eventos...");
   const events = [];
   const now = new Date();
+  const firstDayCurrentMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
   for (let i = 0; i < 342; i++) {
     const asset = insertedAssets[Math.floor(Math.random() * insertedAssets.length)];
-    const daysAgo = Math.floor(Math.random() * 60);
-    const created_at = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    
+    // 70% dos eventos no mês atual, 30% distribuídos nos últimos 60 dias
+    let created_at;
+    if (Math.random() < 0.7) {
+      // Evento no mês atual
+      const daysIntoMonth = Math.floor(Math.random() * now.getDate());
+      created_at = new Date(firstDayCurrentMonth.getTime() + daysIntoMonth * 24 * 60 * 60 * 1000);
+    } else {
+      // Evento nos últimos 60 dias (fora do mês atual)
+      const daysAgo = Math.floor(Math.random() * 60) + 30;
+      created_at = new Date(now.getTime() - daysAgo * 24 * 60 * 60 * 1000);
+    }
     
     events.push({
       asset_id: asset.id,
