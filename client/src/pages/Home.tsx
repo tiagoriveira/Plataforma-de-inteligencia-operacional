@@ -8,10 +8,40 @@ import {
   ClipboardList,
   FileText,
   Settings,
-  History
+  History,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  CheckCircle2
 } from "lucide-react";
 
 export default function Home() {
+  // V1.2: Mock data para KPIs (substituir por queries reais do backend)
+  const kpis = {
+    totalEventosAtual: 342,
+    totalEventosAnterior: 298,
+    ativosSaudaveis: 18,
+    totalAtivos: 25,
+    ativosNegligenciados: 3,
+  };
+
+  const variacao = ((kpis.totalEventosAtual - kpis.totalEventosAnterior) / kpis.totalEventosAnterior * 100).toFixed(1);
+  const percentualSaudaveis = ((kpis.ativosSaudaveis / kpis.totalAtivos) * 100).toFixed(0);
+
+  const ativosNegligenciadosList = [
+    { id: "EMP-04", name: "Empilhadeira E-04", diasSemUso: 45 },
+    { id: "COR-02", name: "Cortadora L-02", diasSemUso: 38 },
+    { id: "SOL-01", name: "Soldadora S-01", diasSemUso: 32 },
+  ];
+
+  const distribuicaoEventos = [
+    { tipo: "Manutenção", count: 120, cor: "bg-yellow-500" },
+    { tipo: "Inspeção", count: 98, cor: "bg-blue-500" },
+    { tipo: "Check-in", count: 65, cor: "bg-green-500" },
+    { tipo: "Problema", count: 42, cor: "bg-red-500" },
+    { tipo: "Melhoria", count: 17, cor: "bg-purple-500" },
+  ];
+
   return (
     <Layout>
       <div className="space-y-8">
@@ -23,6 +53,118 @@ export default function Home() {
           <p className="text-muted-foreground mt-2 text-sm md:text-base">
             Plataforma de Inteligência Operacional
           </p>
+        </div>
+
+        {/* V1.2: Dashboard Minimalista - 3 KPIs Principais */}
+        <div>
+          <h2 className="text-xl font-bold font-mono text-foreground uppercase mb-4 flex items-center gap-2">
+            <span className="text-primary">▸</span> INDICADORES DO MÊS
+          </h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            {/* KPI 1: Total de Eventos */}
+            <IndustrialCard className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-mono text-muted-foreground uppercase">Total de Eventos</span>
+                  {parseFloat(variacao) > 0 ? (
+                    <TrendingUp className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <TrendingDown className="h-4 w-4 text-red-500" />
+                  )}
+                </div>
+                <div className="text-4xl font-bold font-mono text-foreground">{kpis.totalEventosAtual}</div>
+                <div className="text-xs text-muted-foreground mt-2 font-mono">
+                  {parseFloat(variacao) > 0 ? '+' : ''}{variacao}% vs mês anterior ({kpis.totalEventosAnterior})
+                </div>
+              </div>
+            </IndustrialCard>
+
+            {/* KPI 2: Ativos Saudáveis */}
+            <IndustrialCard className="bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-mono text-muted-foreground uppercase">Ativos Saudáveis</span>
+                  <CheckCircle2 className="h-4 w-4 text-green-500" />
+                </div>
+                <div className="text-4xl font-bold font-mono text-foreground">{percentualSaudaveis}%</div>
+                <div className="text-xs text-muted-foreground mt-2 font-mono">
+                  {kpis.ativosSaudaveis} de {kpis.totalAtivos} ativos (≥3 eventos/mês)
+                </div>
+              </div>
+            </IndustrialCard>
+
+            {/* KPI 3: Ativos Negligenciados */}
+            <IndustrialCard className="bg-gradient-to-br from-red-500/5 to-red-500/10 border-red-500/20">
+              <div className="p-6">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-mono text-muted-foreground uppercase">Ativos Negligenciados</span>
+                  <AlertTriangle className="h-4 w-4 text-red-500" />
+                </div>
+                <div className="text-4xl font-bold font-mono text-foreground">{kpis.ativosNegligenciados}</div>
+                <div className="text-xs text-muted-foreground mt-2 font-mono">
+                  Sem uso há mais de 30 dias
+                </div>
+              </div>
+            </IndustrialCard>
+          </div>
+
+          {/* Distribuição de Tipos de Evento */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <IndustrialCard>
+              <div className="p-6">
+                <h3 className="text-sm font-mono font-bold uppercase text-muted-foreground mb-4">
+                  Distribuição de Eventos (Últimos 30 dias)
+                </h3>
+                <div className="space-y-3">
+                  {distribuicaoEventos.map((evento) => {
+                    const total = distribuicaoEventos.reduce((sum, e) => sum + e.count, 0);
+                    const percentual = ((evento.count / total) * 100).toFixed(1);
+                    return (
+                      <div key={evento.tipo}>
+                        <div className="flex items-center justify-between text-xs font-mono mb-1">
+                          <span className="text-foreground">{evento.tipo}</span>
+                          <span className="text-muted-foreground">{evento.count} ({percentual}%)</span>
+                        </div>
+                        <div className="w-full bg-muted rounded-full h-2">
+                          <div 
+                            className={`${evento.cor} h-2 rounded-full transition-all`}
+                            style={{ width: `${percentual}%` }}
+                          />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </IndustrialCard>
+
+            {/* Lista de Ativos Negligenciados */}
+            <IndustrialCard>
+              <div className="p-6">
+                <h3 className="text-sm font-mono font-bold uppercase text-muted-foreground mb-4">
+                  Ativos Negligenciados (Ação Necessária)
+                </h3>
+                <div className="space-y-3">
+                  {ativosNegligenciadosList.map((ativo) => (
+                    <div 
+                      key={ativo.id}
+                      className="flex items-center justify-between p-3 rounded-lg border border-red-500/20 bg-red-500/5"
+                    >
+                      <div>
+                        <div className="font-mono font-bold text-sm text-foreground">{ativo.id}</div>
+                        <div className="text-xs text-muted-foreground">{ativo.name}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-red-500 font-mono font-bold text-sm">{ativo.diasSemUso} dias</div>
+                        <div className="text-xs text-muted-foreground">sem uso</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </IndustrialCard>
+          </div>
         </div>
 
         {/* Acesso Rápido */}

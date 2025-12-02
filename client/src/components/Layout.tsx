@@ -23,23 +23,15 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col md:flex-row overflow-hidden font-sans">
-      {/* Mobile Header */}
+      {/* Mobile Header - Sem menu lateral */}
       <div className="md:hidden flex items-center justify-between p-4 border-b border-border bg-white z-50 shadow-sm">
         <div className="font-bold text-primary tracking-tight text-lg">Op.Intel</div>
-        <div className="flex items-center gap-2">
-          <ThemeToggle />
-          <button onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} className="text-foreground">
-            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </button>
-        </div>
+        <ThemeToggle />
       </div>
 
-      {/* Sidebar Navigation */}
+      {/* Sidebar Navigation - OCULTA NO MOBILE */}
       <aside 
-        className={cn(
-          "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-border transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 flex flex-col shadow-sm",
-          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
-        )}
+        className="hidden md:flex md:relative w-64 bg-white border-r border-border flex-col shadow-sm"
       >
         <div className="p-8 hidden md:block">
           <div className="font-bold text-2xl text-primary tracking-tight">Op.Intel</div>

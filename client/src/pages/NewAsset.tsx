@@ -9,6 +9,48 @@ import { toast } from "sonner";
 
 export default function NewAsset() {
   const [, setLocation] = useLocation();
+  const [instructions, setInstructions] = React.useState("");
+
+  // V1.2: Templates de Checklist
+  const templates = [
+    {
+      id: "5s",
+      name: "Checklist 5S",
+      content: `☐ Seiri (Utilização): Remover itens desnecessários
+☐ Seiton (Organização): Organizar ferramentas
+☐ Seiso (Limpeza): Limpar equipamento
+☐ Seiketsu (Padronização): Verificar conformidade
+☐ Shitsuke (Disciplina): Confirmar rotina`
+    },
+    {
+      id: "nr12",
+      name: "Segurança (NR-12)",
+      content: `☐ Proteções físicas intactas
+☐ Botão de emergência funcional
+☐ Sinalização visível
+☐ EPIs disponíveis no local
+☐ Área ao redor desobstruída`
+    },
+    {
+      id: "preventiva",
+      name: "Manutenção Preventiva",
+      content: `☐ Lubrificação realizada
+☐ Verificação de ruídos anormais
+☐ Inspeção visual de vazamentos
+☐ Teste de funcionamento
+☐ Registro de leituras (se aplicável)`
+    }
+  ];
+
+  const handleTemplateSelect = (templateId: string) => {
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      setInstructions(template.content);
+      toast.success("Template aplicado!", {
+        description: `Template "${template.name}" carregado com sucesso.`,
+      });
+    }
+  };
 
   const handleSave = () => {
     // Simulate save
@@ -104,9 +146,30 @@ export default function NewAsset() {
             <IndustrialCardTitle>Instruções Operacionais (V1.1)</IndustrialCardTitle>
           </IndustrialCardHeader>
           <IndustrialCardContent className="space-y-4">
+            {/* V1.2: Seletor de Templates */}
+            <div className="space-y-2">
+              <label className="text-xs font-mono text-muted-foreground uppercase">Templates Pré-Configurados (V1.2)</label>
+              <div className="flex gap-2">
+                {templates.map((template) => (
+                  <IndustrialButton
+                    key={template.id}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleTemplateSelect(template.id)}
+                    className="text-xs"
+                  >
+                    {template.name}
+                  </IndustrialButton>
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground">Clique para preencher automaticamente com checklist padrão</span>
+            </div>
+
             <div className="space-y-2">
               <label className="text-xs font-mono text-muted-foreground uppercase">Instruções para Operador</label>
               <textarea 
+                value={instructions}
+                onChange={(e) => setInstructions(e.target.value)}
                 className="w-full bg-background border border-input rounded-md p-2 text-sm font-mono h-32 focus:border-primary outline-none focus:ring-1 focus:ring-ring"
                 placeholder="Ex:\n• Verificar nível de óleo antes de ligar\n• Usar EPI obrigatório (óculos + luvas)\n• Temperatura máxima: 80°C"
                 maxLength={500}
