@@ -1,50 +1,39 @@
-# TODO - Migração para Supabase
+# TODO - Preparação para Produção
 
-## FASE 1: Configuração Supabase
-- [x] Listar projetos Supabase via MCP
-- [x] Usar projeto existente: Plataforma-operacional-industrial (omrodclevaidlijnnqeq)
-- [x] Obter credenciais (URL + anon key)
-- [x] Configurar variáveis de ambiente no projeto
+## FASE 1: Scanner QR Code Real
+- [x] Instalar biblioteca html5-qrcode
+- [x] Implementar Scanner.tsx com câmera funcional
+- [x] Adicionar permissões de câmera
+- [x] Testar redirecionamento automático para ficha do ativo
 
-## FASE 2: Schema de Banco de Dados
-- [x] Criar tabela `assets` (17 campos)
-- [x] Criar tabela `events` (7 campos)
-- [x] Configurar foreign key (events.asset_id → assets.id ON DELETE CASCADE)
-- [x] Criar índices para otimização (6 índices totais)
+## FASE 2: Autenticação Multi-Usuário
+- [ ] Configurar Supabase Auth (email/senha)
+- [ ] Criar página de Login/Registro
+- [ ] Atualizar RLS para filtrar por user_id
+- [ ] Adicionar campo user_id em assets e events
+- [ ] Implementar logout e gerenciamento de sessão
 
-## FASE 3: Integração Frontend
-- [x] Instalar @supabase/supabase-js no projeto
-- [x] Criar cliente Supabase em client/src/lib/supabase.ts
-- [x] Criar helper functions (getAssets, createAsset, getEvents, createEvent, getKPIs)
-- [x] Substituir localStorage por queries Supabase em Home.tsx
-- [x] Substituir localStorage por queries Supabase em AssetsList.tsx
-- [x] Substituir localStorage por queries Supabase em AssetDetail.tsx
-- [x] Substituir localStorage por queries Supabase em QuickEvent.tsx
-- [x] Substituir localStorage por queries Supabase em AuditLog.tsx
-- [ ] Substituir localStorage por queries Supabase em Reports.tsx
+## FASE 3: Service Worker Offline (PWA)
+- [ ] Configurar Workbox para cache de assets
+- [ ] Implementar estratégia offline-first
+- [ ] Adicionar manifest.json (PWA)
+- [ ] Implementar sincronização de eventos pendentes
+- [ ] Adicionar ícones PWA
 
-## FASE 4: Migração de Dados
-- [x] Popular tabela assets com dados iniciais (25 ativos)
-- [x] Popular tabela events com histórico simulado (342 eventos)
-- [x] Ajustar seed para 70% eventos no mês atual
+## FASE 4: Reports.tsx com Dados Reais
+- [x] Integrar getKPIs() em Reports.tsx
+- [x] Atualizar geração de PDF com dados dinâmicos
+- [x] Testar export de relatórios
 
-## FASE 5: Row Level Security (RLS)
-- [x] Habilitar RLS em assets e events
-- [x] Criar políticas de leitura pública
-- [x] Criar políticas de inserção pública
-- [x] Criar políticas de atualização pública
-- [ ] Validar integridade dos dados
+## FASE 5: Otimizações de Produção
+- [x] Adicionar meta tags SEO (Open Graph, Twitter Cards)
+- [x] Configurar lang="pt-BR" no HTML
+- [x] Adicionar Apple Touch Icon
+- [ ] Otimizar imagens e assets
+- [ ] Implementar lazy loading
+- [ ] Adicionar error boundaries
 
-## FASE 5: Autenticação
-- [ ] Configurar Supabase Auth (email/password)
-- [ ] Implementar tela de login
-- [ ] Proteger rotas com autenticação
-- [ ] Configurar Row Level Security (RLS)
-
-## FASE 6: Validação
-- [ ] Testar CRUD de ativos
-- [ ] Testar registro de eventos
-- [ ] Testar filtros e buscas
-- [ ] Testar export CSV
-- [ ] Testar geração de PDF
+## FASE 6: Validação Final
+- [ ] Testar todos os fluxos em produção
+- [ ] Validar performance (Lighthouse)
 - [ ] Checkpoint final

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
@@ -7,33 +7,53 @@ import { Link } from "wouter";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
+import { getKPIs } from "@/lib/supabase";
 
 export default function Reports() {
+  const [loading, setLoading] = useState(true);
+  const [kpis, setKpis] = useState<any>(null);
+
+  useEffect(() => {
+    async function loadKPIs() {
+      try {
+        const data = await getKPIs();
+        setKpis(data);
+      } catch (error) {
+        console.error("Erro ao carregar KPIs:", error);
+        toast.error("Erro ao carregar dados do relatório");
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadKPIs();
+  }, []);
+
+  if (loading || !kpis) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground font-mono">Carregando relatório...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
   
-  // V1.2: Dados do relatório mensal (mock - substituir por queries reais)
   const reportData = {
-    periodo: "Novembro 2025",
-    totalEventos: 342,
-    totalEventosAnterior: 298,
-    ativosSaudaveis: 18,
-    totalAtivos: 25,
-    ativosNegligenciados: [
-      { id: "EMP-04", name: "Empilhadeira E-04", diasSemUso: 45 },
-      { id: "COR-02", name: "Cortadora L-02", diasSemUso: 38 },
-      { id: "SOL-01", name: "Soldadora S-01", diasSemUso: 32 },
-    ],
-    top5Ativos: [
-      { id: "TOR-001", name: "Torno CNC-01", eventos: 48 },
-      { id: "PRE-001", name: "Prensa H-20", eventos: 42 },
-      { id: "COR-001", name: "Cortadora L-01", eventos: 38 },
-      { id: "SOL-002", name: "Soldadora S-02", eventos: 35 },
-      { id: "EMP-001", name: "Empilhadeira E-01", eventos: 32 },
-    ],
-    naoConformidades: [
-      { data: "28/11", ativo: "TOR-001", descricao: "Vazamento de óleo hidráulico" },
-      { data: "22/11", ativo: "PRE-001", descricao: "Proteção lateral danificada" },
-      { data: "15/11", ativo: "COR-001", descricao: "Botão de emergência não funciona" },
-    ],
+    periodo: new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
+    totalEventos: kpis.totalEventosAtual,
+    totalEventosAnterior: kpis.totalEventosAnterior,
+    ativosSaudaveis: kpis.ativosSaudaveis,
+    totalAtivos: kpis.totalAtivos,
+    ativosNegligenciados: kpis.ativosNegligenciadosList.slice(0, 3).map((a: any) => ({
+      id: a.code,
+      name: a.name,
+      diasSemUso: a.diasSemUso
+    })),
+    top5Ativos: [],
+    naoConformidades: [],
   };
 
   const variacao = ((reportData.totalEventos - reportData.totalEventosAnterior) / reportData.totalEventosAnterior * 100).toFixed(1);
@@ -195,7 +215,7 @@ export default function Reports() {
                     </tr>
                   </thead>
                   <tbody>
-                    {reportData.top5Ativos.map((ativo, index) => (
+                    {reportData.top5Ativos.map((ativo: any, index: number) => (
                       <tr key={ativo.id} className="border-b border-gray-200">
                         <td className="py-3 px-3 font-mono text-sm font-bold text-gray-800">{ativo.id}</td>
                         <td className="py-3 px-3 text-sm text-gray-700">{ativo.name}</td>
@@ -220,7 +240,7 @@ export default function Reports() {
                   Ativos Negligenciados (Ação Necessária)
                 </h3>
                 <div className="space-y-3">
-                  {reportData.ativosNegligenciados.map((ativo) => (
+                  {reportData.ativosNegligenciados.map((ativo: any) => (
                     <div 
                       key={ativo.id}
                       className="flex items-center justify-between p-4 rounded-lg border-2 border-red-500/20 bg-red-500/5"
@@ -253,7 +273,7 @@ export default function Reports() {
                       </tr>
                     </thead>
                     <tbody>
-                      {reportData.naoConformidades.map((nc, index) => (
+                      {reportData.naoConformidades.map((nc: any, index: number) => (
                         <tr key={index} className="border-b border-gray-200">
                           <td className="py-3 px-3 font-mono text-sm text-gray-800">{nc.data}</td>
                           <td className="py-3 px-3 font-mono font-bold text-sm text-gray-800">{nc.ativo}</td>
