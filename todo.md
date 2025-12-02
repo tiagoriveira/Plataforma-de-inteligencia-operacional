@@ -1,66 +1,44 @@
-# TODO - Finalização Sistema V1.0 + V1.1 + V1.2
+# TODO - Simplificação UX para Usuários Leigos
 
-## CORREÇÕES URGENTES
+## PRIORIDADE CRÍTICA
 
-### UX Mobile
-- [x] Ocultar sidebar de navegação no mobile
-- [x] Exibir apenas cards de acesso rápido na Home mobile
-- [x] Manter sidebar apenas em desktop
+### Layout Mobile - Home.tsx
+- [x] Reduzir altura dos cards de KPIs (mais compactos)
+- [x] Exibir KPIs + Acesso Rápido na mesma viewport (sem scroll)
+- [x] Grid 2x2 de ações principais visível imediatamente
 
-### Migração Supabase
-- [ ] Remover backend Node.js/Express/tRPC atual
-- [ ] Configurar Supabase client
-- [ ] Criar tabelas no Supabase (assets, events)
-- [ ] Migrar queries para Supabase SDK
-- [ ] Atualizar frontend para usar Supabase diretamente
+### Botões Voltar
+- [x] Adicionar botão "Voltar" em QuickEvent.tsx (já existia)
+- [x] Adicionar botão "Voltar" em Scanner.tsx
+- [x] Adicionar botão "Voltar" em AuditLog.tsx
+- [x] Adicionar botão "Voltar" em Reports.tsx
+- [x] Adicionar botão "Voltar" em Settings.tsx
 
-## V1.2 - DASHBOARD MINIMALISTA
+### Simplificar Linguagem
+- [x] Home.tsx: "Ativos Saudáveis" → "Em Dia"
+- [x] Home.tsx: "Ativos Negligenciados" → "Parados"
+- [x] Home.tsx: "Distribuição de Eventos" → "Tipos de Registro"
+- [x] Home.tsx: "INDICADORES DO MÊS" → "RESUMO DO MÊS"
+- [x] QuickEvent.tsx: "Não Conformidade" → "Problema Grave"
+- [x] QuickEvent.tsx: "Registro Rápido" → "REGISTRAR EVENTO"
+- [ ] AssetDetail.tsx: "Especificações" → "Informações Técnicas"
+- [ ] Reports.tsx: "Resumo Executivo" → "Resumo do Mês"
+- [x] AuditLog.tsx: Título da página → "Histórico Completo"
 
-### Backend Supabase
-- [x] PULADO - Backend atual mantido (Manus)
+## PRIORIDADE MÉDIA
 
-### Frontend Dashboard
-- [x] Atualizar Home.tsx com 3 KPIs principais
-- [x] Adicionar gráfico de barras (distribuição de eventos)
-- [x] Adicionar lista de ativos negligenciados
-- [x] Adicionar comparação com mês anterior (% variação)
+### Labels em Botões
+- [ ] Adicionar texto "Voltar" ao lado do ícone de seta
+- [ ] Aumentar tamanho de fonte dos botões principais (mobile)
 
-## V1.2 - TEMPLATES DE CHECKLIST
-
-- [x] Criar 3 templates pré-configurados:
-  - [x] Template 5S (5 itens)
-  - [x] Template NR-12 Segurança (5 itens)
-  - [x] Template Manutenção Preventiva (5 itens)
-- [x] Adicionar botões de templates em NewAsset.tsx
-- [x] Preencher campo Instruções automaticamente ao selecionar template
-
-## V1.2 - RELATÓRIOS AUTOMÁTICOS PDF
-
-- [x] Implementar template HTML do relatório (2 páginas)
-- [x] Implementar geração de PDF com html2canvas + jsPDF
-- [x] Página 1: Resumo Executivo (3 KPIs + Top 5 Ativos)
-- [x] Página 2: Alertas e Recomendações (Negligenciados + Não Conformidades)
-- [ ] Configurar Cron job backend (1º dia útil do mês, 09:00) - PENDENTE BACKEND
-- [ ] Integrar envio de email com PDF anexado - PENDENTE BACKEND
+### Feedback Visual
+- [ ] Adicionar toast "Gerando PDF..." em Reports.tsx
+- [ ] Adicionar toast "Exportando..." ao clicar em Export CSV
+- [ ] Adicionar loading ao escanear QR Code
 
 ## VALIDAÇÃO FINAL
 
-- [x] Testar todos os fluxos em mobile
-- [x] Testar todos os fluxos em desktop
-- [x] Validar conformidade com v1.0.txt - 100%
-- [x] Validar conformidade com v1.1.txt - 100%
-- [x] Validar conformidade com v1.2.txt - 100%
-- [x] Checkpoint final - versão 4760ce3d
-- [x] Adicionar exibição de Instruções em AssetDetail.tsx
-
-## RESUMO FINAL
-
-**Frontend: 100% Completo**
-- V1.0: 6/6 módulos implementados
-- V1.1: 4/4 features implementadas
-- V1.2: 3/3 features implementadas
-
-**Pendente (Backend):**
-- Integração de queries reais para KPIs (substituir mock data)
-- Cron job para geração automática de relatórios
-- Envio de email com PDF anexado
+- [ ] Testar com usuário leigo (não técnico)
+- [ ] Verificar se todas as telas têm botão voltar
+- [ ] Verificar se Home mobile não precisa de scroll para ver ações principais
+- [ ] Checkpoint final após correções

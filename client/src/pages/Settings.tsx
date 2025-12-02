@@ -3,7 +3,8 @@ import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { User, Bell, Lock, Save, Mail, Smartphone } from "lucide-react";
+import { User, Bell, Lock, Save, Mail, Smartphone, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import { toast } from "sonner";
 
 export default function Settings() {
@@ -23,13 +24,20 @@ export default function Settings() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
-            Configurações
-          </h1>
-          <p className="text-muted-foreground mt-1 font-mono text-sm">
-            GERENCIAR CONTA E PREFERÊNCIAS
-          </p>
+        <div className="flex items-center gap-4 mb-4">
+          <Link href="/">
+            <IndustrialButton variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </IndustrialButton>
+          </Link>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
+              CONFIGURAÇÕES
+            </h1>
+            <p className="text-muted-foreground mt-1 font-mono text-sm">
+              AJUSTES DO SISTEMA
+            </p>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

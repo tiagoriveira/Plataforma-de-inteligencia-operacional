@@ -3,7 +3,8 @@ import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialInput } from "@/components/ui/industrial-input";
-import { Search, Shield, User, Clock, FileText } from "lucide-react";
+import { Search, Shield, User, Clock, FileText, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 
 const initialLogs = [
   { id: 1, user: "Op. Silva", action: "CHECK-IN", target: "TORNO CNC-01", timestamp: "2025-11-28 10:42:15", details: "Início de turno operacional" },
@@ -27,13 +28,20 @@ export default function AuditLog() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
-            Log de Auditoria
-          </h1>
-          <p className="text-muted-foreground mt-1 font-mono text-sm">
-            RASTREABILIDADE E SEGURANÇA // {filteredLogs.length} REGISTROS
-          </p>
+        <div className="flex items-center gap-4 mb-4">
+          <Link href="/">
+            <IndustrialButton variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </IndustrialButton>
+          </Link>
+          <div>
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
+              HISTÓRICO COMPLETO
+            </h1>
+            <p className="text-muted-foreground mt-1 font-mono text-sm">
+              TODOS OS REGISTROS // {filteredLogs.length} ENCONTRADOS
+            </p>
+          </div>
         </div>
 
         <IndustrialCard className="p-4">

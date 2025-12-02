@@ -20,7 +20,7 @@ export default function QuickEvent() {
     { id: "CHECKOUT", label: "CHECK-OUT OPERACIONAL", color: "text-blue-500 border-blue-500/50 hover:bg-blue-500/10" },
     { id: "INSPECTION", label: "INSPEÇÃO VISUAL", color: "text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10" },
     { id: "ISSUE", label: "REPORTAR PROBLEMA", color: "text-red-500 border-red-500/50 hover:bg-red-500/10" },
-    { id: "NONCONFORMITY", label: "NÃO CONFORMIDADE", color: "text-orange-500 border-orange-500/50 hover:bg-orange-500/10" },
+    { id: "NONCONFORMITY", label: "PROBLEMA GRAVE", color: "text-orange-500 border-orange-500/50 hover:bg-orange-500/10" },
     { id: "IMPROVEMENT", label: "SUGESTÃO DE MELHORIA", color: "text-purple-500 border-purple-500/50 hover:bg-purple-500/10" },
   ];
 
@@ -58,10 +58,10 @@ export default function QuickEvent() {
   };
 
   const handleSave = () => {
-    // V1.1: Validar foto obrigatória para Não Conformidade
+    // V1.1: Validar foto obrigatória para Problema Grave
     if (eventType === "NONCONFORMITY" && !photoTaken) {
-      toast.error("Foto obrigatória para registrar não conformidade", {
-        description: "Por favor, tire uma foto da não conformidade antes de continuar.",
+      toast.error("Foto obrigatória para problema grave", {
+        description: "Por favor, tire uma foto antes de continuar.",
       });
       return;
     }
@@ -84,7 +84,7 @@ export default function QuickEvent() {
             </IndustrialButton>
           </Link>
           <div>
-            <h1 className="text-xl font-bold font-mono uppercase">Registro Rápido</h1>
+            <h1 className="text-xl font-bold font-mono uppercase">REGISTRAR EVENTO</h1>
             <p className="text-xs text-muted-foreground font-mono">TORNO CNC-01 // TOR-001</p>
           </div>
         </div>

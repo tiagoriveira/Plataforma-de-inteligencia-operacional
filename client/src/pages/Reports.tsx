@@ -2,7 +2,8 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
-import { FileText, Download, Calendar, BarChart3, AlertTriangle, CheckCircle2, TrendingUp } from "lucide-react";
+import { FileText, Download, Calendar, BarChart3, AlertTriangle, CheckCircle2, TrendingUp, ArrowLeft } from "lucide-react";
+import { Link } from "wouter";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { toast } from "sonner";
@@ -84,11 +85,19 @@ export default function Reports() {
   return (
     <Layout>
       <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-4">
+          <Link href="/">
+            <IndustrialButton variant="ghost" size="icon">
+              <ArrowLeft className="h-5 w-5" />
+            </IndustrialButton>
+          </Link>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
+            RELATÓRIOS
+          </h1>
+        </div>
+        
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight font-mono text-foreground uppercase">
-              Relatórios
-            </h1>
             <p className="text-muted-foreground mt-1 font-mono text-sm">
               RELATÓRIO MENSAL AUTOMÁTICO (V1.2)
             </p>

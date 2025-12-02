@@ -44,77 +44,148 @@ export default function Home() {
 
   return (
     <Layout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="border-b border-border pb-6">
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight font-mono text-foreground uppercase">
+        <div className="border-b border-border pb-4">
+          <h1 className="text-2xl md:text-4xl font-bold tracking-tight font-mono text-foreground uppercase">
             Op.Intel
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm md:text-base">
+          <p className="text-muted-foreground mt-1 text-sm">
             Plataforma de Inteligência Operacional
           </p>
         </div>
 
-        {/* V1.2: Dashboard Minimalista - 3 KPIs Principais */}
-        <div>
-          <h2 className="text-xl font-bold font-mono text-foreground uppercase mb-4 flex items-center gap-2">
-            <span className="text-primary">▸</span> INDICADORES DO MÊS
+        {/* MOBILE: Acesso Rápido PRIMEIRO (mais importante para operadores) */}
+        <div className="block md:hidden">
+          <h2 className="text-lg font-bold font-mono text-foreground uppercase mb-3 flex items-center gap-2">
+            <span className="text-primary">▸</span> O QUE VOCÊ QUER FAZER?
           </h2>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-2 gap-3">
+            {/* Escanear Ativo */}
+            <Link href="/scan">
+              <IndustrialCard className="cursor-pointer hover:border-primary transition-colors h-full">
+                <div className="flex flex-col items-center justify-center text-center p-4 gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <QrCode className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm font-mono uppercase">ESCANEAR</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ler QR Code
+                    </p>
+                  </div>
+                </div>
+              </IndustrialCard>
+            </Link>
+
+            {/* Lista de Ativos */}
+            <Link href="/assets">
+              <IndustrialCard className="cursor-pointer hover:border-primary transition-colors h-full">
+                <div className="flex flex-col items-center justify-center text-center p-4 gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-green-500/10 flex items-center justify-center">
+                    <Box className="w-6 h-6 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm font-mono uppercase">EQUIPAMENTOS</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ver lista
+                    </p>
+                  </div>
+                </div>
+              </IndustrialCard>
+            </Link>
+
+            {/* Registro Rápido */}
+            <Link href="/quick-event">
+              <IndustrialCard className="cursor-pointer hover:border-primary transition-colors h-full">
+                <div className="flex flex-col items-center justify-center text-center p-4 gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                    <ClipboardList className="w-6 h-6 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm font-mono uppercase">REGISTRAR</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Sem QR Code
+                    </p>
+                  </div>
+                </div>
+              </IndustrialCard>
+            </Link>
+
+            {/* Histórico */}
+            <Link href="/audit-log">
+              <IndustrialCard className="cursor-pointer hover:border-primary transition-colors h-full">
+                <div className="flex flex-col items-center justify-center text-center p-4 gap-3">
+                  <div className="w-12 h-12 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <History className="w-6 h-6 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm font-mono uppercase">HISTÓRICO</h3>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Ver registros
+                    </p>
+                  </div>
+                </div>
+              </IndustrialCard>
+            </Link>
+          </div>
+        </div>
+
+        {/* V1.2: Dashboard Minimalista - 3 KPIs Principais (COMPACTO NO MOBILE) */}
+        <div>
+          <h2 className="text-lg md:text-xl font-bold font-mono text-foreground uppercase mb-3 flex items-center gap-2">
+            <span className="text-primary">▸</span> RESUMO DO MÊS
+          </h2>
+          
+          <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4">
             {/* KPI 1: Total de Eventos */}
             <IndustrialCard className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono text-muted-foreground uppercase">Total de Eventos</span>
+              <div className="p-3 md:p-6">
+                <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">Total de Registros</div>
+                <div className="text-2xl md:text-4xl font-bold font-mono text-foreground">{kpis.totalEventosAtual}</div>
+                <div className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
                   {parseFloat(variacao) > 0 ? (
-                    <TrendingUp className="h-4 w-4 text-green-500" />
+                    <>
+                      <TrendingUp className="h-3 w-3 text-green-500" />
+                      <span className="text-green-500">+{variacao}%</span>
+                    </>
                   ) : (
-                    <TrendingDown className="h-4 w-4 text-red-500" />
+                    <span className="text-red-500">{variacao}%</span>
                   )}
-                </div>
-                <div className="text-4xl font-bold font-mono text-foreground">{kpis.totalEventosAtual}</div>
-                <div className="text-xs text-muted-foreground mt-2 font-mono">
-                  {parseFloat(variacao) > 0 ? '+' : ''}{variacao}% vs mês anterior ({kpis.totalEventosAnterior})
                 </div>
               </div>
             </IndustrialCard>
 
             {/* KPI 2: Ativos Saudáveis */}
             <IndustrialCard className="bg-gradient-to-br from-green-500/5 to-green-500/10 border-green-500/20">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono text-muted-foreground uppercase">Ativos Saudáveis</span>
-                  <CheckCircle2 className="h-4 w-4 text-green-500" />
-                </div>
-                <div className="text-4xl font-bold font-mono text-foreground">{percentualSaudaveis}%</div>
-                <div className="text-xs text-muted-foreground mt-2 font-mono">
-                  {kpis.ativosSaudaveis} de {kpis.totalAtivos} ativos (≥3 eventos/mês)
+              <div className="p-3 md:p-6">
+                <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">Em Dia</div>
+                <div className="text-2xl md:text-4xl font-bold font-mono text-foreground">{percentualSaudaveis}%</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {kpis.ativosSaudaveis} de {kpis.totalAtivos}
                 </div>
               </div>
             </IndustrialCard>
 
             {/* KPI 3: Ativos Negligenciados */}
             <IndustrialCard className="bg-gradient-to-br from-red-500/5 to-red-500/10 border-red-500/20">
-              <div className="p-6">
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-mono text-muted-foreground uppercase">Ativos Negligenciados</span>
-                  <AlertTriangle className="h-4 w-4 text-red-500" />
-                </div>
-                <div className="text-4xl font-bold font-mono text-foreground">{kpis.ativosNegligenciados}</div>
-                <div className="text-xs text-muted-foreground mt-2 font-mono">
-                  Sem uso há mais de 30 dias
+              <div className="p-3 md:p-6">
+                <div className="text-xs font-mono text-muted-foreground mb-1 uppercase">Parados</div>
+                <div className="text-2xl md:text-4xl font-bold font-mono text-foreground">{kpis.ativosNegligenciados}</div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  +30 dias
                 </div>
               </div>
             </IndustrialCard>
           </div>
 
-          {/* Distribuição de Tipos de Evento */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Detalhes (Oculto no mobile por padrão, visível no desktop) */}
+          <div className="hidden md:grid grid-cols-1 lg:grid-cols-2 gap-6">
             <IndustrialCard>
               <div className="p-6">
                 <h3 className="text-sm font-mono font-bold uppercase text-muted-foreground mb-4">
-                  Distribuição de Eventos (Últimos 30 dias)
+                  Tipos de Registro (Últimos 30 dias)
                 </h3>
                 <div className="space-y-3">
                   {distribuicaoEventos.map((evento) => {
@@ -143,7 +214,7 @@ export default function Home() {
             <IndustrialCard>
               <div className="p-6">
                 <h3 className="text-sm font-mono font-bold uppercase text-muted-foreground mb-4">
-                  Ativos Negligenciados (Ação Necessária)
+                  Equipamentos Parados (Ação Necessária)
                 </h3>
                 <div className="space-y-3">
                   {ativosNegligenciadosList.map((ativo) => (
@@ -167,8 +238,8 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Acesso Rápido */}
-        <div>
+        {/* DESKTOP: Acesso Rápido (grid completo) */}
+        <div className="hidden md:block">
           <h2 className="text-xl font-bold font-mono text-foreground uppercase mb-4 flex items-center gap-2">
             <span className="text-primary">▸</span> ACESSO RÁPIDO
           </h2>
@@ -199,7 +270,7 @@ export default function Home() {
                     <Box className="w-8 h-8 text-green-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg font-mono uppercase">LISTA DE ATIVOS</h3>
+                    <h3 className="font-bold text-lg font-mono uppercase">LISTA DE EQUIPAMENTOS</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       Gerenciar inventário
                     </p>
@@ -233,7 +304,7 @@ export default function Home() {
                     <History className="w-8 h-8 text-purple-600" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-lg font-mono uppercase">HISTÓRICO (LOG)</h3>
+                    <h3 className="font-bold text-lg font-mono uppercase">HISTÓRICO COMPLETO</h3>
                     <p className="text-sm text-muted-foreground mt-1">
                       Visualizar eventos registrados
                     </p>
@@ -285,11 +356,8 @@ export default function Home() {
               SOBRE O SISTEMA
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Sistema de rastreamento industrial via QR/NFC. Cada escaneamento gera um evento. 
-              Cada evento alimenta o histórico. O histórico vira inteligência operacional.
-            </p>
-            <p className="text-xs text-muted-foreground mt-2 font-mono">
-              Filosofia: KISS + Dados Primeiro + Zero Perfumaria
+              Sistema de rastreamento industrial via QR/NFC. Cada escaneamento gera um registro. 
+              Cada registro alimenta o histórico. O histórico vira inteligência operacional.
             </p>
           </div>
         </IndustrialCard>
