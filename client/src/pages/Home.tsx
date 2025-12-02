@@ -1,3 +1,4 @@
+import React, { useEffect, useState } from "react";
 import { Link } from "wouter";
 import Layout from "@/components/Layout";
 import { IndustrialCard } from "@/components/ui/industrial-card";
@@ -14,25 +15,55 @@ import {
   AlertTriangle,
   CheckCircle2
 } from "lucide-react";
+import { getKPIs } from "@/lib/supabase";
 
 export default function Home() {
-  // V1.2: Mock data para KPIs (substituir por queries reais do backend)
-  const kpis = {
-    totalEventosAtual: 342,
-    totalEventosAnterior: 298,
-    ativosSaudaveis: 18,
-    totalAtivos: 25,
-    ativosNegligenciados: 3,
-  };
+  const [kpis, setKpis] = useState({
+    totalEventosAtual: 0,
+    totalEventosAnterior: 0,
+    ativosSaudaveis: 0,
+    totalAtivos: 0,
+    ativosNegligenciados: 0,
+    ativosNegligenciadosList: [] as any[],
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadKPIs() {
+      try {
+        const data = await getKPIs();
+        setKpis({
+          totalEventosAtual: data.totalEventosAtual,
+          totalEventosAnterior: data.totalEventosAnterior,
+          ativosSaudaveis: data.ativosSaudaveis,
+          totalAtivos: data.totalAtivos,
+          ativosNegligenciados: data.ativosNegligenciados,
+          ativosNegligenciadosList: data.ativosNegligenciadosList,
+        });
+      } catch (error) {
+        console.error("Erro ao carregar KPIs:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadKPIs();
+  }, []);
 
   const variacao = ((kpis.totalEventosAtual - kpis.totalEventosAnterior) / kpis.totalEventosAnterior * 100).toFixed(1);
   const percentualSaudaveis = ((kpis.ativosSaudaveis / kpis.totalAtivos) * 100).toFixed(0);
 
-  const ativosNegligenciadosList = [
-    { id: "EMP-04", name: "Empilhadeira E-04", diasSemUso: 45 },
-    { id: "COR-02", name: "Cortadora L-02", diasSemUso: 38 },
-    { id: "SOL-01", name: "Soldadora S-01", diasSemUso: 32 },
-  ];
+  if (loading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground font-mono">Carregando dados...</p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const distribuicaoEventos = [
     { tipo: "Manutenção", count: 120, cor: "bg-yellow-500" },
@@ -217,7 +248,7 @@ export default function Home() {
                   Equipamentos Parados (Ação Necessária)
                 </h3>
                 <div className="space-y-3">
-                  {ativosNegligenciadosList.map((ativo) => (
+                  {kpis.ativosNegligenciadosList.map((ativo: any) => (
                     <div 
                       key={ativo.id}
                       className="flex items-center justify-between p-3 rounded-lg border border-red-500/20 bg-red-500/5"
