@@ -20,6 +20,7 @@ export default function QuickEvent() {
     { id: "CHECKOUT", label: "CHECK-OUT OPERACIONAL", color: "text-blue-500 border-blue-500/50 hover:bg-blue-500/10" },
     { id: "INSPECTION", label: "INSPEÇÃO VISUAL", color: "text-yellow-500 border-yellow-500/50 hover:bg-yellow-500/10" },
     { id: "ISSUE", label: "REPORTAR PROBLEMA", color: "text-red-500 border-red-500/50 hover:bg-red-500/10" },
+    { id: "NONCONFORMITY", label: "NÃO CONFORMIDADE", color: "text-orange-500 border-orange-500/50 hover:bg-orange-500/10" },
     { id: "IMPROVEMENT", label: "SUGESTÃO DE MELHORIA", color: "text-purple-500 border-purple-500/50 hover:bg-purple-500/10" },
   ];
 
@@ -57,6 +58,14 @@ export default function QuickEvent() {
   };
 
   const handleSave = () => {
+    // V1.1: Validar foto obrigatória para Não Conformidade
+    if (eventType === "NONCONFORMITY" && !photoTaken) {
+      toast.error("Foto obrigatória para registrar não conformidade", {
+        description: "Por favor, tire uma foto da não conformidade antes de continuar.",
+      });
+      return;
+    }
+    
     setStep(3);
     setTimeout(() => {
       setLocation("/assets/TOR-001");
@@ -99,7 +108,9 @@ export default function QuickEvent() {
           <div className="space-y-6 animate-in fade-in slide-in-from-right-8 duration-300">
             <IndustrialCard>
               <IndustrialCardHeader>
-                <IndustrialCardTitle>Evidência Visual (Opcional)</IndustrialCardTitle>
+                <IndustrialCardTitle>
+                  Evidência Visual {eventType === "NONCONFORMITY" && <span className="text-red-500">*OBRIGATÓRIA*</span>}
+                </IndustrialCardTitle>
               </IndustrialCardHeader>
               <IndustrialCardContent>
                 <div 

@@ -96,6 +96,32 @@ export const appRouter = router({
           userId: ctx.user?.id,
         });
       }),
+    
+    // V1.1: Export CSV
+    exportCSV: publicProcedure
+      .input(z.object({
+        assetId: z.string(),
+      }))
+      .query(async ({ input }) => {
+        const events = await db.getEventsByAssetId(input.assetId);
+        
+        // Gerar CSV
+        const headers = ["Data/Hora", "Tipo", "Operador", "Observação", "Foto"];
+        const rows = events.map(e => [
+          new Date(e.timestamp).toLocaleString('pt-BR'),
+          e.type,
+          e.operator,
+          e.observation || "-",
+          e.photoUrl ? "Sim" : "Não"
+        ]);
+        
+        const csvContent = [
+          headers.join(","),
+          ...rows.map(row => row.map(cell => `"${cell}"`).join(","))
+        ].join("\n");
+        
+        return { csv: csvContent };
+      }),
   }),
 });
 

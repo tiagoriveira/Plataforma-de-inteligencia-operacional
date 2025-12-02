@@ -2,7 +2,7 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { IndustrialCard, IndustrialCardContent, IndustrialCardHeader, IndustrialCardTitle } from "@/components/ui/industrial-card";
 import { IndustrialButton } from "@/components/ui/industrial-button";
-import { ArrowLeft, QrCode, History, FileText, Settings, Printer } from "lucide-react";
+import { ArrowLeft, QrCode, History, FileText, Settings, Printer, Download } from "lucide-react";
 import { Link, useRoute } from "wouter";
 
 export default function AssetDetail() {
@@ -87,10 +87,29 @@ export default function AssetDetail() {
             {/* Timeline */}
             <IndustrialCard>
               <IndustrialCardHeader>
-                <IndustrialCardTitle className="flex items-center gap-2">
-                  <History className="h-4 w-4" />
-                  Histórico de Eventos
-                </IndustrialCardTitle>
+                <div className="flex items-center justify-between">
+                  <IndustrialCardTitle className="flex items-center gap-2">
+                    <History className="h-4 w-4" />
+                    Histórico de Eventos
+                  </IndustrialCardTitle>
+                  <IndustrialButton 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      // V1.1: Export CSV
+                      const csv = `"Data/Hora","Tipo","Operador","Observação"\n"HOJE, 10:42","Check-in","Op. Silva","Início de turno"\n"ONTEM, 16:30","Check-out","Op. Silva","Fim de turno"`;
+                      const blob = new Blob([csv], { type: 'text/csv' });
+                      const url = window.URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = `historico_${id}_${new Date().toISOString().split('T')[0]}.csv`;
+                      a.click();
+                    }}
+                  >
+                    <Download className="mr-2 h-3 w-3" />
+                    EXPORTAR CSV
+                  </IndustrialButton>
+                </div>
               </IndustrialCardHeader>
               <IndustrialCardContent>
                 <div className="relative border-l border-border ml-3 space-y-8 py-2">

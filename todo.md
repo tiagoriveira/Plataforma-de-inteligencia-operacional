@@ -37,8 +37,9 @@
 - [ ] Exibir instruções na ficha do ativo (AssetDetail.tsx)
 
 ### Frontend - Export
-- [ ] Adicionar botão "Exportar CSV" no histórico do ativo
-- [ ] Implementar download automático do CSV
+- [x] Adicionar botão "Exportar CSV" no histórico do ativo
+- [x] Implementar download automático do CSV
+- [x] Criar endpoint backend events.exportCSV
 
 ## FASE 3: IMPLEMENTAR V1.2
 
@@ -56,3 +57,33 @@
 - [ ] Testar export CSV
 - [ ] Validar conformidade total com documentação CTO
 - [ ] Checkpoint final auditado
+
+### Frontend - Formulários
+- [x] Adicionar campo "Instruções" (textarea 500 chars) em NewAsset.tsx
+- [x] Adicionar campos "Intervalo de Manutenção (dias)" em NewAsset.tsx
+- [x] Adicionar tipo "Não Conforme" no dropdown de eventos (QuickEvent.tsx)
+- [x] Validar foto obrigatória quando tipo = "Não Conforme" (client-side)
+- [x] Atualizar AuditLog.tsx para suportar NONCONFORMITY
+- [ ] Exibir instruções na ficha do ativo (AssetDetail.tsx)
+
+### Frontend - Export
+- [x] Adicionar botão "Exportar CSV" no histórico do ativo
+- [x] Implementar download automático do CSV
+- [x] Criar endpoint backend events.exportCSV
+
+## FASE 3: IMPLEMENTAR V1.2
+
+### Backend - Dashboard KPIs
+- [ ] Criar endpoint /api/dashboard/kpis (3 KPIs principais)
+- [ ] Implementar query para ativos negligenciados (>30 dias sem evento)
+- [ ] Implementar query para distribuição de tipos de evento
+
+### Frontend - Dashboard Minimalista
+- [ ] Atualizar Home.tsx com 3 KPIs principais
+- [ ] Adicionar gráfico de distribuição de eventos (últimos 30 dias)
+- [ ] Adicionar lista de ativos negligenciados
+
+### Backend - Relatórios PDF
+- [ ] Criar endpoint /api/reports/generate-monthly
+- [ ] Implementar geração de PDF com template HTML
+- [ ] Configurar envio automático por email (1º dia útil do mês)

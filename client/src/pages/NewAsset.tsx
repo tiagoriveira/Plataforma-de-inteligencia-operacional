@@ -101,6 +101,31 @@ export default function NewAsset() {
 
         <IndustrialCard>
           <IndustrialCardHeader>
+            <IndustrialCardTitle>Instruções Operacionais (V1.1)</IndustrialCardTitle>
+          </IndustrialCardHeader>
+          <IndustrialCardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-mono text-muted-foreground uppercase">Instruções para Operador</label>
+              <textarea 
+                className="w-full bg-background border border-input rounded-md p-2 text-sm font-mono h-32 focus:border-primary outline-none focus:ring-1 focus:ring-ring"
+                placeholder="Ex:\n• Verificar nível de óleo antes de ligar\n• Usar EPI obrigatório (óculos + luvas)\n• Temperatura máxima: 80°C"
+                maxLength={500}
+              />
+              <span className="text-xs text-muted-foreground">Máximo 500 caracteres. Serão exibidas ao operador ao escanear o QR Code.</span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-xs font-mono text-muted-foreground uppercase">Intervalo de Manutenção (dias)</label>
+                <IndustrialInput type="number" placeholder="Ex: 90" />
+                <span className="text-xs text-muted-foreground">Sistema alertará 7 dias antes do vencimento</span>
+              </div>
+            </div>
+          </IndustrialCardContent>
+        </IndustrialCard>
+
+        <IndustrialCard>
+          <IndustrialCardHeader>
             <IndustrialCardTitle>Mídia e Documentos</IndustrialCardTitle>
           </IndustrialCardHeader>
           <IndustrialCardContent>
