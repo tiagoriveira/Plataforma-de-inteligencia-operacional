@@ -15,6 +15,20 @@
       "when": 1764606223895,
       "tag": "0001_brief_swarm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1764674996976,
+      "tag": "0002_flimsy_marvel_apes",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1764675043043,
+      "tag": "0003_curved_fantastic_four",
+      "breakpoints": true
     }
   ]
 }

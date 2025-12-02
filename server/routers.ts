@@ -44,6 +44,8 @@ export const appRouter = router({
         year: z.number().optional(),
         warranty: z.string().optional(),
         imageUrl: z.string().optional(),
+        instructions: z.string().max(500).optional(), // V1.1
+        maintenanceIntervalDays: z.number().optional(), // V1.1
       }))
       .mutation(async ({ input, ctx }) => {
         return await db.createAsset({
@@ -78,12 +80,17 @@ export const appRouter = router({
     create: publicProcedure
       .input(z.object({
         assetId: z.string(),
-        type: z.enum(["CHECKIN", "CHECKOUT", "INSPECTION", "ISSUE", "IMPROVEMENT", "MAINTENANCE"]),
+        type: z.enum(["CHECKIN", "CHECKOUT", "INSPECTION", "ISSUE", "IMPROVEMENT", "MAINTENANCE", "NONCONFORMITY"]),
         operator: z.string(),
         observation: z.string().optional(),
         photoUrl: z.string().optional(),
       }))
       .mutation(async ({ input, ctx }) => {
+        // V1.1: Foto obrigatória para Não Conformidade
+        if (input.type === "NONCONFORMITY" && !input.photoUrl) {
+          throw new Error("Foto obrigatória para registrar não conformidade");
+        }
+        
         return await db.createEvent({
           ...input,
           userId: ctx.user?.id,

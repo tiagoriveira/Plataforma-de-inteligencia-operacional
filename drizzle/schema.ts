@@ -40,6 +40,9 @@ export const assets = mysqlTable("assets", {
   year: int("year"),
   warranty: varchar("warranty", { length: 255 }),
   imageUrl: text("imageUrl"),
+  instructions: text("instructions"), // V1.1: Instruções para operador (max 500 chars)
+  maintenanceIntervalDays: int("maintenanceIntervalDays"), // V1.1: Intervalo de manutenção em dias
+  lastMaintenanceDate: timestamp("lastMaintenanceDate"), // V1.1: Última data de manutenção
   createdAt: timestamp("createdAt").defaultNow().notNull(),
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   createdBy: int("createdBy").references(() => users.id),
@@ -54,7 +57,7 @@ export type InsertAsset = typeof assets.$inferInsert;
 export const events = mysqlTable("events", {
   id: int("id").autoincrement().primaryKey(),
   assetId: varchar("assetId", { length: 32 }).notNull().references(() => assets.id),
-  type: mysqlEnum("type", ["CHECKIN", "CHECKOUT", "INSPECTION", "ISSUE", "IMPROVEMENT", "MAINTENANCE"]).notNull(),
+  type: mysqlEnum("type", ["CHECKIN", "CHECKOUT", "INSPECTION", "ISSUE", "IMPROVEMENT", "MAINTENANCE", "NONCONFORMITY"]).notNull(),
   operator: varchar("operator", { length: 255 }).notNull(), // Nome do operador
   observation: text("observation"),
   photoUrl: text("photoUrl"), // URL da foto no S3

@@ -8,9 +8,7 @@ import Home from "./pages/Home";
 import AssetsList from "./pages/AssetsList";
 import AssetDetail from "./pages/AssetDetail";
 import Scanner from "./pages/Scanner";
-import Maintenance from "./pages/Maintenance";
-import MaintenanceKanban from "./pages/MaintenanceKanban";
-import MaintenanceKPIs from "./pages/MaintenanceKPIs";
+
 import AuditLog from "./pages/AuditLog";
 import Settings from "./pages/Settings";
 import Reports from "./pages/Reports";
@@ -29,9 +27,7 @@ function Router() {
       <Route path={"/assets/:id/print"} component={PrintLabel} />
       <Route path={"/assets/:id"} component={AssetDetail} />
       <Route path={"/scan"} component={Scanner} />
-      <Route path="/maintenance" component={Maintenance} />
-      <Route path="/maintenance/kanban" component={MaintenanceKanban} />
-      <Route path="/maintenance/kpis" component={MaintenanceKPIs} />
+
       <Route path="/audit-log" component={AuditLog} />
       <Route path="/settings" component={Settings} />
       <Route path={"/reports"} component={Reports} />

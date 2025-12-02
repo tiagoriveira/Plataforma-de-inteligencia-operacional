@@ -16,9 +16,8 @@ export default function Layout({ children }: LayoutProps) {
     { icon: LayoutDashboard, label: "Dashboard", path: "/" },
     { icon: Box, label: "Ativos", path: "/assets" },
     { icon: QrCode, label: "Scanner", path: "/scan" },
-    { icon: History, label: "Histórico (Log)", path: "/maintenance" },
+    { icon: History, label: "Histórico (Log)", path: "/audit-log" },
     { icon: Activity, label: "Relatórios", path: "/reports" },
-    { icon: Shield, label: "Auditoria", path: "/audit-log" },
     { icon: Settings, label: "Configurações", path: "/settings" },
   ];
 
