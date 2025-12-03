@@ -34,3 +34,27 @@
 - [x] Tutorial interativo implementado
 - [x] Recuperação de senha implementada
 - [ ] Checkpoint final
+
+## FASE 6: Acesso Rápido via PIN
+- [ ] Adicionar campo `pin` (4 dígitos) na tabela auth.users metadata
+- [ ] Criar página PinLogin.tsx (teclado numérico)
+- [ ] Atualizar AuthContext para suportar login via PIN
+- [ ] Atualizar página Register para solicitar PIN de 4 dígitos
+- [ ] Redirecionar / para PinLogin ao invés de Login tradicional
+
+## FASE 7: Notificações por Email
+- [ ] Configurar Supabase SMTP settings
+- [ ] Criar função sendEmailNotification em supabase.ts
+- [ ] Adicionar trigger em createEvent para não conformidades
+- [ ] Testar envio de email
+
+## FASE 8: Relatórios Agendados
+- [ ] Criar Supabase Edge Function para geração de PDF
+- [ ] Configurar pg_cron no Supabase (1º dia do mês, 09:00)
+- [ ] Testar geração automática de relatórios
+
+## FASE 9: Remover Dados Mockados
+- [ ] Remover dados mock em Home.tsx (usar apenas dados reais do Supabase)
+- [ ] Remover dados mock em Reports.tsx (usar apenas getKPIs())
+- [ ] Verificar todas as páginas para dados hardcoded
+- [ ] Checkpoint final

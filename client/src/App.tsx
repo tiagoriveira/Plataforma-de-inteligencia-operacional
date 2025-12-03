@@ -15,6 +15,7 @@ import Reports from "./pages/Reports";
 import QuickEvent from "./pages/QuickEvent";
 import NewAsset from "./pages/NewAsset";
 import PrintLabel from "./pages/PrintLabel";
+import PinLogin from "./pages/PinLogin";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
@@ -30,13 +31,14 @@ function PrivateRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  return user ? <Component {...rest} /> : <Redirect to="/login" />;
+  return user ? <Component {...rest} /> : <Redirect to="/pin-login" />;
 }
 
 function Router() {
   return (
     <Switch>
       {/* Public routes */}
+      <Route path="/pin-login" component={PinLogin} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/forgot-password" component={ForgotPassword} />

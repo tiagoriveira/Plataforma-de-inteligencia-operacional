@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithPin: (pin: string) => Promise<void>;
   signUp: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -38,6 +39,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   };
 
+  const signInWithPin = async (pin: string) => {
+    // Login com PIN (demo: aceita "1234")
+    // Em produção, buscar usuário por PIN no metadata
+    if (pin === "1234") {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: "demo@op.intel",
+        password: "demo1234",
+      });
+      if (error) throw error;
+    } else {
+      throw new Error("PIN inválido");
+    }
+  };
+
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({ email, password });
     if (error) throw error;
@@ -49,7 +64,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signInWithPin, signUp, signOut }}>
       {children}
     </AuthContext.Provider>
   );
