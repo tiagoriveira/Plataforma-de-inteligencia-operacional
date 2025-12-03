@@ -117,7 +117,33 @@ export async function createEvent(event: Omit<Event, 'id' | 'created_at'>) {
     .single();
   
   if (error) throw error;
+  
+  // Enviar notificação por email para não conformidades
+  if (event.type === 'NONCONFORMITY') {
+    try {
+      await sendEmailNotification({
+        to: 'tiagosantosr59@gmail.com',
+        subject: '⚠️ Não Conformidade Registrada - Op.Intel',
+        body: `Uma não conformidade foi registrada:\n\nOperador: ${event.operator}\nObservação: ${event.observation || 'N/A'}\nData: ${new Date().toLocaleString('pt-BR')}`,
+      });
+    } catch (emailError) {
+      console.error('Erro ao enviar email:', emailError);
+      // Não bloquear o registro do evento se o email falhar
+    }
+  }
+  
   return data as Event;
+}
+
+async function sendEmailNotification(params: { to: string; subject: string; body: string }) {
+  // Implementação simples via console.log
+  // Em produção, configurar Supabase Edge Function com Resend/SendGrid
+  console.log('=== EMAIL NOTIFICATION ===');
+  console.log('To:', params.to);
+  console.log('Subject:', params.subject);
+  console.log('Body:', params.body);
+  console.log('==========================');
+  // TODO: Implementar envio real via Edge Function
 }
 
 // KPIs para Dashboard V1.2

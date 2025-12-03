@@ -40,12 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithPin = async (pin: string) => {
-    // Login com PIN (demo: aceita "1234")
+    // Login com PIN (demo: aceita "1234" para usuário real)
     // Em produção, buscar usuário por PIN no metadata
     if (pin === "1234") {
       const { error } = await supabase.auth.signInWithPassword({
-        email: "demo@op.intel",
-        password: "demo1234",
+        email: "tiagosantosr59@gmail.com",
+        password: "Tiago@2025",
       });
       if (error) throw error;
     } else {
