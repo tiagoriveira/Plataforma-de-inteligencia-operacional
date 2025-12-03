@@ -49,6 +49,7 @@ export default function Layout({ children }: LayoutProps) {
     { icon: History, label: "Histórico (Log)", path: "/audit-log" },
     { icon: Activity, label: "Relatórios", path: "/reports" },
     { icon: Settings, label: "Configurações", path: "/settings" },
+    { icon: Shield, label: "Administração", path: "/admin" },
   ];
 
   return (

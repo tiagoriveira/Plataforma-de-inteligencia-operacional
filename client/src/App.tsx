@@ -19,6 +19,10 @@ import PinLogin from "./pages/PinLogin";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import ForgotPassword from "./pages/ForgotPassword";
+import Admin from "./pages/Admin";
+import AdminUsers from "./pages/AdminUsers";
+import AdminSettings from "./pages/AdminSettings";
+import AdminLogs from "./pages/AdminLogs";
 
 function PrivateRoute({ component: Component, ...rest }: any) {
   const { user, loading } = useAuth();
@@ -73,6 +77,18 @@ function Router() {
       </Route>
       <Route path="/quick-event">
         {() => <PrivateRoute component={QuickEvent} />}
+      </Route>
+      <Route path="/admin">
+        {() => <PrivateRoute component={Admin} />}
+      </Route>
+      <Route path="/admin/users">
+        {() => <PrivateRoute component={AdminUsers} />}
+      </Route>
+      <Route path="/admin/settings">
+        {() => <PrivateRoute component={AdminSettings} />}
+      </Route>
+      <Route path="/admin/logs">
+        {() => <PrivateRoute component={AdminLogs} />}
       </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
