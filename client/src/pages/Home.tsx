@@ -16,8 +16,11 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { getKPIs } from "@/lib/supabase";
+import OnboardingTour from "@/components/OnboardingTour";
+import { calcularVariacao, calcularPercentual } from "@/lib/kpi-helpers";
 
 export default function Home() {
+  // Tour interativo no primeiro acesso
   const [kpis, setKpis] = useState({
     totalEventosAtual: 0,
     totalEventosAnterior: 0,
@@ -49,8 +52,8 @@ export default function Home() {
     loadKPIs();
   }, []);
 
-  const variacao = ((kpis.totalEventosAtual - kpis.totalEventosAnterior) / kpis.totalEventosAnterior * 100).toFixed(1);
-  const percentualSaudaveis = ((kpis.ativosSaudaveis / kpis.totalAtivos) * 100).toFixed(0);
+  const variacao = calcularVariacao(kpis.totalEventosAtual, kpis.totalEventosAnterior);
+  const percentualSaudaveis = calcularPercentual(kpis.ativosSaudaveis, kpis.totalAtivos);
 
   if (loading) {
     return (
@@ -393,6 +396,7 @@ export default function Home() {
           </div>
         </IndustrialCard>
       </div>
+      <OnboardingTour />
     </Layout>
   );
 }

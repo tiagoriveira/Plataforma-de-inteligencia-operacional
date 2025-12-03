@@ -5,6 +5,27 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
+// Upload de fotos para Supabase Storage
+export async function uploadPhoto(file: File): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+  const { error } = await supabase.storage
+    .from('photos')
+    .upload(fileName, file);
+
+  if (error) throw error;
+
+  const { data } = supabase.storage
+    .from('photos')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
+}
+
 // Types
 export interface Asset {
   id: string;
@@ -58,9 +79,11 @@ export async function getAssetByCode(code: string) {
 }
 
 export async function createAsset(asset: Omit<Asset, 'id' | 'created_at' | 'updated_at'>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data, error } = await supabase
     .from('assets')
-    .insert(asset)
+    .insert({ ...asset, user_id: user?.id })
     .select()
     .single();
   
@@ -85,9 +108,11 @@ export async function getEvents(assetId?: string) {
 }
 
 export async function createEvent(event: Omit<Event, 'id' | 'created_at'>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
   const { data, error } = await supabase
     .from('events')
-    .insert(event)
+    .insert({ ...event, user_id: user?.id })
     .select()
     .single();
   

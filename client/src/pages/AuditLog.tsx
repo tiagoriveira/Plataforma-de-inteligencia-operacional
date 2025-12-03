@@ -20,7 +20,10 @@ export default function AuditLog() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [typeFilter, setTypeFilter] = useState("TODOS");
+  const [dateFilter, setDateFilter] = useState("TODOS");
   const [showFilters, setShowFilters] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 20;
 
   useEffect(() => {
     async function loadEvents() {
@@ -37,18 +40,36 @@ export default function AuditLog() {
     loadEvents();
   }, []);
 
-  const filteredEvents = events.filter((event) => {
+  const allFilteredEvents = events.filter((event) => {
     const matchesSearch =
       event.operator?.toLowerCase().includes(search.toLowerCase()) ||
       event.observation?.toLowerCase().includes(search.toLowerCase());
     const matchesType = typeFilter === "TODOS" || event.type === typeFilter;
+    
+    let matchesDate = true;
+    if (dateFilter !== "TODOS") {
+      const eventDate = new Date(event.created_at);
+      const now = new Date();
+      const diffDays = Math.floor((now.getTime() - eventDate.getTime()) / (1000 * 60 * 60 * 24));
+      
+      if (dateFilter === "HOJE") matchesDate = diffDays === 0;
+      else if (dateFilter === "7DIAS") matchesDate = diffDays <= 7;
+      else if (dateFilter === "30DIAS") matchesDate = diffDays <= 30;
+    }
 
-    return matchesSearch && matchesType;
+    return matchesSearch && matchesType && matchesDate;
   });
+
+  // Paginação
+  const totalPages = Math.ceil(allFilteredEvents.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const filteredEvents = allFilteredEvents.slice(startIndex, startIndex + ITEMS_PER_PAGE);
 
   const clearFilters = () => {
     setSearch("");
+    setDateFilter("TODOS");
     setTypeFilter("TODOS");
+    setCurrentPage(1);
   };
 
   const exportToCSV = () => {
@@ -159,7 +180,7 @@ export default function AuditLog() {
               FILTROS
             </IndustrialButton>
 
-            {(search || typeFilter !== "TODOS") && (
+            {(search || typeFilter !== "TODOS" || dateFilter !== "TODOS") && (
               <IndustrialButton
                 variant="ghost"
                 onClick={clearFilters}
@@ -172,7 +193,7 @@ export default function AuditLog() {
           </div>
 
           {showFilters && (
-            <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="mt-4 pt-4 border-t border-border grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-mono text-muted-foreground uppercase block mb-2">
                   Tipo de Evento
@@ -190,6 +211,23 @@ export default function AuditLog() {
                     <SelectItem value="MAINTENANCE">Manutenção</SelectItem>
                     <SelectItem value="IMPROVEMENT">Melhoria</SelectItem>
                     <SelectItem value="NONCONFORMITY">Problema Grave</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-xs font-mono text-muted-foreground uppercase block mb-2">
+                  Período
+                </label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="TODOS">TODOS</SelectItem>
+                    <SelectItem value="HOJE">Hoje</SelectItem>
+                    <SelectItem value="7DIAS">Últimos 7 dias</SelectItem>
+                    <SelectItem value="30DIAS">Últimos 30 dias</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -234,6 +272,31 @@ export default function AuditLog() {
             ))
           )}
         </div>
+
+        {/* Paginação */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-2 mt-6">
+            <IndustrialButton
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+            >
+              Anterior
+            </IndustrialButton>
+            <span className="text-sm font-mono text-muted-foreground px-4">
+              Página {currentPage} de {totalPages}
+            </span>
+            <IndustrialButton
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Próxima
+            </IndustrialButton>
+          </div>
+        )}
       </div>
     </Layout>
   );

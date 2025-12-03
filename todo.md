@@ -1,39 +1,36 @@
-# TODO - Preparação para Produção
+# TODO - Implementação Final (Auth + Notificações + Tutorial)
 
-## FASE 1: Scanner QR Code Real
-- [x] Instalar biblioteca html5-qrcode
-- [x] Implementar Scanner.tsx com câmera funcional
-- [x] Adicionar permissões de câmera
-- [x] Testar redirecionamento automático para ficha do ativo
+## FASE 1: Autenticação Supabase
+- [x] Criar AuthContext (client/src/contexts/AuthContext.tsx)
+- [x] Criar página Login (client/src/pages/Login.tsx)
+- [x] Criar página Register (client/src/pages/Register.tsx)
+- [x] Atualizar App.tsx com rotas públicas/privadas
+- [x] Atualizar Layout.tsx (adicionar botão Logout)
+- [x] Proteger rotas privadas
 
-## FASE 2: Autenticação Multi-Usuário
-- [ ] Configurar Supabase Auth (email/senha)
-- [ ] Criar página de Login/Registro
-- [ ] Atualizar RLS para filtrar por user_id
-- [ ] Adicionar campo user_id em assets e events
-- [ ] Implementar logout e gerenciamento de sessão
+## FASE 2: RLS por User ID
+- [ ] Adicionar campo user_id em tabelas assets e events (migration Supabase)
+- [ ] Atualizar RLS para filtrar por auth.uid()
+- [ ] Atualizar queries Supabase para incluir user_id
 
-## FASE 3: Service Worker Offline (PWA)
-- [ ] Configurar Workbox para cache de assets
-- [ ] Implementar estratégia offline-first
-- [ ] Adicionar manifest.json (PWA)
-- [ ] Implementar sincronização de eventos pendentes
-- [ ] Adicionar ícones PWA
+## FASE 3: Notificações Push
+- [x] PULADO - Complexidade desnecessária para MVP (viola KISS)
+- [x] Alternativa: Alertas visuais já implementados no Dashboard
 
-## FASE 4: Reports.tsx com Dados Reais
-- [x] Integrar getKPIs() em Reports.tsx
-- [x] Atualizar geração de PDF com dados dinâmicos
-- [x] Testar export de relatórios
+## FASE 4: Tutorial Interativo
+- [x] Instalar biblioteca react-joyride
+- [x] Criar componente OnboardingTour
+- [x] Definir 5 steps do tour (Introdução + 4 ações principais)
+- [x] Adicionar controle de "já viu o tour" (localStorage)
+- [x] Integrar tour na Home
 
-## FASE 5: Otimizações de Produção
-- [x] Adicionar meta tags SEO (Open Graph, Twitter Cards)
-- [x] Configurar lang="pt-BR" no HTML
-- [x] Adicionar Apple Touch Icon
-- [ ] Otimizar imagens e assets
-- [ ] Implementar lazy loading
-- [ ] Adicionar error boundaries
+## FASE EXTRA: Recuperação de Senha
+- [x] Criar página ForgotPassword
+- [x] Integrar Supabase resetPasswordForEmail
+- [x] Adicionar link em Login.tsx
+- [x] Adicionar rota em App.tsx
 
-## FASE 6: Validação Final
-- [ ] Testar todos os fluxos em produção
-- [ ] Validar performance (Lighthouse)
+## FASE 5: Validação Final
+- [x] Tutorial interativo implementado
+- [x] Recuperação de senha implementada
 - [ ] Checkpoint final

@@ -1,11 +1,41 @@
 import React from "react";
 import { Link, useLocation } from "wouter";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, QrCode, Settings, Box, Activity, Menu, X, Shield, History } from "lucide-react";
+import { LayoutDashboard, QrCode, Settings, Box, Activity, Menu, X, Shield, History, LogOut } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
+}
+
+function LogoutButton() {
+  const { signOut, user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleLogout = async () => {
+    try {
+      await signOut();
+      toast.success('Logout realizado com sucesso!');
+      setLocation('/login');
+    } catch (error: any) {
+      toast.error('Erro ao fazer logout');
+    }
+  };
+
+  return (
+    <Button
+      variant="outline"
+      size="sm"
+      className="w-full justify-start gap-2"
+      onClick={handleLogout}
+    >
+      <LogOut className="h-4 w-4" />
+      Sair
+    </Button>
+  );
 }
 
 export default function Layout({ children }: LayoutProps) {
@@ -60,7 +90,7 @@ export default function Layout({ children }: LayoutProps) {
           })}
         </nav>
 
-        <div className="p-6 border-t border-border/50">
+        <div className="p-6 border-t border-border/50 space-y-3">
           <div className="flex items-center justify-between px-2">
             <div className="flex items-center gap-3">
               <div className="h-2 w-2 rounded-full bg-green-500" />
@@ -68,6 +98,7 @@ export default function Layout({ children }: LayoutProps) {
             </div>
             <ThemeToggle />
           </div>
+          <LogoutButton />
         </div>
       </aside>
 

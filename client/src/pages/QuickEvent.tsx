@@ -6,13 +6,15 @@ import { Camera, CheckCircle2, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { standardizeText, suggestCategory } from "@/lib/smartSecretary";
 import { toast } from "sonner";
-import { createEvent, getAssetByCode } from "@/lib/supabase";
+import { createEvent, getAssetByCode, uploadPhoto } from "@/lib/supabase";
 
 export default function QuickEvent() {
   const [, setLocation] = useLocation();
   const [step, setStep] = useState(1);
   const [eventType, setEventType] = useState("");
   const [photoTaken, setPhotoTaken] = useState(false);
+  const [photoFile, setPhotoFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [observation, setObservation] = useState("");
   const [isStandardizing, setIsStandardizing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -59,7 +61,7 @@ export default function QuickEvent() {
 
   const handleSave = async () => {
     // V1.1: Validar foto obrigatória para Problema Grave
-    if (eventType === "NONCONFORMITY" && !photoTaken) {
+    if (eventType === "NONCONFORMITY" && !photoFile) {
       toast.error("Foto obrigatória para problema grave", {
         description: "Por favor, tire uma foto antes de continuar.",
       });
@@ -72,13 +74,22 @@ export default function QuickEvent() {
       // Buscar ativo TOR-001 (demo - em produção seria via scanner)
       const asset = await getAssetByCode("TOR-001");
       
+      let photoUrl = null;
+      
+      // Upload de foto se houver
+      if (photoFile) {
+        setUploading(true);
+        photoUrl = await uploadPhoto(photoFile, `events/${asset.id}`);
+        setUploading(false);
+      }
+      
       // Criar evento no Supabase
       await createEvent({
         asset_id: asset.id,
         type: eventType,
         operator: "Operador Demo",
         observation: observation || null,
-        photo_url: photoTaken ? "https://placehold.co/800x600/png" : null,
+        photo_url: photoUrl,
       });
 
       setStep(3);
@@ -91,6 +102,16 @@ export default function QuickEvent() {
         description: "Tente novamente.",
       });
       setSaving(false);
+      setUploading(false);
+    }
+  };
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setPhotoFile(file);
+      setPhotoTaken(true);
+      toast.success("Foto selecionada!");
     }
   };
 
@@ -135,24 +156,33 @@ export default function QuickEvent() {
                 </IndustrialCardTitle>
               </IndustrialCardHeader>
               <IndustrialCardContent>
-                <div 
-                  onClick={() => setPhotoTaken(!photoTaken)}
-                  className={`aspect-video border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                    photoTaken ? "border-green-500 bg-green-500/5" : "border-border hover:border-primary hover:bg-accent/5"
-                  }`}
-                >
-                  {photoTaken ? (
-                    <>
-                      <CheckCircle2 className="h-12 w-12 text-green-500 mb-2" />
-                      <span className="text-xs font-mono text-green-500">FOTO REGISTRADA</span>
-                    </>
-                  ) : (
-                    <>
-                      <Camera className="h-12 w-12 text-muted-foreground mb-2" />
-                      <span className="text-xs font-mono text-muted-foreground">TOCAR PARA FOTOGRAFAR</span>
-                    </>
-                  )}
-                </div>
+                <label className="block">
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    capture="environment"
+                    onChange={handlePhotoChange}
+                    className="hidden"
+                  />
+                  <div 
+                    className={`aspect-video border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
+                      photoTaken ? "border-green-500 bg-green-500/5" : "border-border hover:border-primary hover:bg-accent/5"
+                    }`}
+                  >
+                    {photoTaken ? (
+                      <>
+                        <CheckCircle2 className="h-12 w-12 text-green-500 mb-2" />
+                        <span className="text-xs font-mono text-green-500">FOTO REGISTRADA</span>
+                        {photoFile && <span className="text-[10px] text-muted-foreground mt-1">{photoFile.name}</span>}
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="h-12 w-12 text-muted-foreground mb-2" />
+                        <span className="text-xs font-mono text-muted-foreground">TOCAR PARA FOTOGRAFAR</span>
+                      </>
+                    )}
+                  </div>
+                </label>
                 
                 <div className="mt-4 relative">
                   <div className="flex justify-between items-center mb-2">
