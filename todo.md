@@ -58,3 +58,18 @@
 - [ ] Remover dados mock em Reports.tsx (usar apenas getKPIs())
 - [ ] Verificar todas as páginas para dados hardcoded
 - [ ] Checkpoint final
+
+## FASE 10: Dashboard de Administração
+- [ ] Criar página Admin.tsx (layout principal)
+- [ ] Criar página AdminUsers.tsx (gerenciamento de usuários)
+- [ ] Criar página AdminSettings.tsx (configurações globais)
+- [ ] Adicionar rotas de admin em App.tsx
+- [ ] Implementar listagem de usuários
+- [ ] Implementar criação/edição de usuários
+- [ ] Implementar atribuição de PINs personalizados
+- [ ] Implementar desativação de usuários
+- [ ] Implementar logs de auditoria (quem fez o quê)
+- [ ] Implementar configurações globais (dias sem uso, alertas)
+- [ ] Adicionar proteção de rota (apenas admins)
+- [ ] Checkpoint antes do dashboard
+- [ ] Checkpoint depois do dashboard
