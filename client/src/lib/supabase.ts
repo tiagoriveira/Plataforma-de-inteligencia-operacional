@@ -1,9 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { supabaseConfig } from '../config/supabase.config';
 
-const supabaseUrl = 'https://omrodclevaidlijnnqeq.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9tcm9kY2xldmFpZGxpam5ucWVxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ2MjUwNjUsImV4cCI6MjA4MDIwMTA2NX0.J_Xwh_0aju6-bxGGAk7PxkfIs_5Vr4_01EVFECcpOpE';
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
 
 // Upload de fotos para Supabase Storage
 export async function uploadPhoto(file: File): Promise<string> {

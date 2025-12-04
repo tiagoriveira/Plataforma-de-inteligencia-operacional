@@ -6,7 +6,7 @@ import { Camera, CheckCircle2, Clock, ArrowLeft, Sparkles } from "lucide-react";
 import { Link, useLocation } from "wouter";
 import { standardizeText, suggestCategory } from "@/lib/smartSecretary";
 import { toast } from "sonner";
-import { createEvent, getAssetByCode, uploadPhoto } from "@/lib/supabase";
+import { createEvent, getAssetByCode, uploadPhoto, supabase } from "@/lib/supabase";
 
 export default function QuickEvent() {
   const [, setLocation] = useLocation();
@@ -92,6 +92,11 @@ export default function QuickEvent() {
         photo_url: photoUrl,
       });
 
+      // Enviar notificação por email se for não conformidade
+      if (eventType === "NONCONFORMITY") {
+        await sendNotificationEmail(asset.name, observation, photoUrl);
+      }
+
       setStep(3);
       setTimeout(() => {
         setLocation(`/assets/${asset.code}`);
@@ -103,6 +108,46 @@ export default function QuickEvent() {
       });
       setSaving(false);
       setUploading(false);
+    }
+  };
+
+  const sendNotificationEmail = async (assetName: string, observation: string | null, photoUrl: string | null) => {
+    try {
+      // Buscar email de notificação das configurações do sistema
+      const { data: settings } = await supabase
+        .from('system_settings')
+        .select('value')
+        .eq('key', 'notification_email')
+        .single();
+
+      const notificationEmail = settings?.value || 'tiagosantosr59@gmail.com';
+
+      // Chamar Edge Function para enviar email
+      const { error } = await supabase.functions.invoke('send-email-notification', {
+        body: {
+          to: notificationEmail,
+          subject: `⚠️ Não Conformidade: ${assetName}`,
+          type: 'NONCONFORMITY',
+          data: {
+            assetName: assetName,
+            operator: 'Operador Demo',
+            observation: observation,
+            photoUrl: photoUrl,
+            systemUrl: window.location.origin,
+          },
+        },
+      });
+
+      if (error) {
+        console.error('Erro ao enviar email:', error);
+        // Não bloquear o fluxo se o email falhar
+        toast.warning('Evento registrado, mas falha ao enviar notificação por email');
+      } else {
+        console.log('Email de notificação enviado com sucesso');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar notificação:', error);
+      // Não bloquear o fluxo se o email falhar
     }
   };
 
