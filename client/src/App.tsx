@@ -36,7 +36,7 @@ function PrivateRoute({ component: Component, ...rest }: any) {
   }
 
   if (!user) {
-    return <Redirect to="/login" />;
+    return <Redirect to="/pin-login" />;
   }
 
   if (isLocked) {
@@ -57,7 +57,7 @@ function AdminRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  if (!user) return <Redirect to="/login" />;
+  if (!user) return <Redirect to="/pin-login" />;
   if (isLocked) return <Redirect to="/pin-login" />;
 
   const isAdmin = user.user_metadata?.role === 'admin';

@@ -19,7 +19,7 @@ function LogoutButton() {
     try {
       await signOut();
       toast.success('Logout realizado com sucesso!');
-      setLocation('/login');
+      setLocation('/pin-login');
     } catch (error: any) {
       toast.error('Erro ao fazer logout');
     }

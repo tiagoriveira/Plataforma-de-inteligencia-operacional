@@ -69,7 +69,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       password,
       options: {
         data: {
-          pin: pin
+          pin: pin,
+          role: 'operator' // Novos usuários são operadores por padrão
         }
       }
     });

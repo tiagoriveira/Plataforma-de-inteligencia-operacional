@@ -13,9 +13,12 @@ export default function PinLogin() {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    // Se não há usuário, redireciona para login tradicional
     if (!user) {
       setLocation("/login");
-    } else if (!isLocked) {
+    }
+    // Se há usuário mas não está bloqueado, vai para home
+    else if (!isLocked) {
       setLocation("/");
     }
   }, [user, isLocked, setLocation]);
