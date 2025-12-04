@@ -12,6 +12,25 @@
 
 Este documento apresenta um plano de ação estruturado para corrigir os problemas críticos identificados na auditoria do sistema Op.Intel. O plano está organizado em **sprints** de 1-2 semanas, com tarefas priorizadas por criticidade e dependências técnicas.
 
+### ⚠️ IMPORTANTE: Arquitetura Backend
+
+**O ÚNICO BACKEND DO SISTEMA É O SUPABASE.** Não utilize Node.js, Express, ou qualquer outro servidor backend customizado. Toda a lógica de backend deve ser implementada através de:
+
+- **Supabase Database (PostgreSQL):** Tabelas, views, índices
+- **Supabase Auth:** Autenticação e gerenciamento de usuários
+- **Supabase Storage:** Armazenamento de arquivos (fotos, PDFs)
+- **Supabase Edge Functions (Deno):** Lógica serverless quando necessário
+- **Supabase RLS (Row Level Security):** Controle de acesso a nível de banco
+- **PostgreSQL Functions:** Stored procedures e triggers
+
+**NÃO UTILIZE:**
+- ❌ Servidor Node.js customizado
+- ❌ Express.js ou qualquer framework backend Node.js
+- ❌ Scripts Node.js para lógica de backend (apenas para build/dev tools)
+- ❌ APIs REST customizadas (use Supabase PostgREST automático)
+
+**Frontend:** React + TypeScript + Vite (comunicação direta com Supabase via SDK)
+
 ### Status Atual
 - ✅ Funcionalidades completas (V1.0 + V1.1 + V1.2 + Dashboard Admin)
 - 🔴 3 problemas críticos de segurança impedem produção
@@ -718,85 +737,73 @@ Sistema contém dados demo que podem confundir usuários reais. Necessário proc
 
 #### Passos de Implementação
 
-**1. Criar Script de Limpeza de Dados Demo**
+**1. Criar Função SQL para Limpeza de Dados Demo**
 
-Criar arquivo `scripts/clean-demo-data.mjs`:
+⚠️ **IMPORTANTE:** Como o único backend é Supabase, use SQL functions ao invés de scripts Node.js.
 
-```javascript
-import { createClient } from '@supabase/supabase-js';
-import * as readline from 'readline';
+Criar migração `supabase/migrations/008_clean_demo_data_function.sql`:
 
-const rl = readline.createInterface({
-  input: process.stdin,
-  output: process.stdout
-});
+```sql
+-- Migration: Clean demo data function
+-- Description: Creates SQL function to clean all demo data from the system
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+CREATE OR REPLACE FUNCTION clean_demo_data()
+RETURNS TABLE(
+  deleted_events INTEGER,
+  deleted_assets INTEGER,
+  deleted_logs INTEGER,
+  message TEXT
+) AS $$
+DECLARE
+  v_events_count INTEGER;
+  v_assets_count INTEGER;
+  v_logs_count INTEGER;
+BEGIN
+  -- Security check: ensure caller is admin
+  IF (SELECT raw_user_meta_data->>'role' FROM auth.users WHERE id = auth.uid()) != 'admin' THEN
+    RAISE EXCEPTION 'Access denied: Admin role required';
+  END IF;
 
-async function cleanDemoData() {
-  console.log('⚠️  ATENÇÃO: Este script irá DELETAR TODOS os dados demo do sistema!');
-  console.log('Dados que serão removidos:');
-  console.log('- Todos os eventos');
-  console.log('- Todos os ativos');
-  console.log('- Todos os logs de auditoria');
-  console.log('- Usuário demo (tiagosantosr59@gmail.com)');
-  console.log('');
+  -- Delete all events
+  DELETE FROM events WHERE id IS NOT NULL;
+  GET DIAGNOSTICS v_events_count = ROW_COUNT;
 
-  rl.question('Tem certeza que deseja continuar? (digite "SIM" para confirmar): ', async (answer) => {
-    if (answer !== 'SIM') {
-      console.log('Operação cancelada.');
-      rl.close();
-      return;
-    }
+  -- Delete all assets
+  DELETE FROM assets WHERE id IS NOT NULL;
+  GET DIAGNOSTICS v_assets_count = ROW_COUNT;
 
-    try {
-      console.log('🗑️  Deletando eventos...');
-      const { error: eventsError } = await supabase
-        .from('events')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+  -- Delete all audit logs
+  DELETE FROM audit_logs WHERE id IS NOT NULL;
+  GET DIAGNOSTICS v_logs_count = ROW_COUNT;
 
-      if (eventsError) throw eventsError;
-      console.log('✅ Eventos deletados');
+  -- Return results
+  RETURN QUERY SELECT 
+    v_events_count,
+    v_assets_count,
+    v_logs_count,
+    'Demo data cleaned successfully'::TEXT;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+```
 
-      console.log('🗑️  Deletando ativos...');
-      const { error: assetsError } = await supabase
-        .from('assets')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+**Como usar:**
 
-      if (assetsError) throw assetsError;
-      console.log('✅ Ativos deletados');
+No Supabase Dashboard → SQL Editor, execute:
 
-      console.log('🗑️  Deletando logs de auditoria...');
-      const { error: logsError } = await supabase
-        .from('audit_logs')
-        .delete()
-        .neq('id', '00000000-0000-0000-0000-000000000000'); // Delete all
+```sql
+-- ⚠️ ATENÇÃO: Isso irá deletar TODOS os dados!
+SELECT * FROM clean_demo_data();
+```
 
-      if (logsError) throw logsError;
-      console.log('✅ Logs deletados');
+Ou via frontend (criar página admin para isso):
 
-      console.log('');
-      console.log('✅ Limpeza concluída com sucesso!');
-      console.log('');
-      console.log('Próximos passos:');
-      console.log('1. Criar primeiro usuário admin via /register');
-      console.log('2. Configurar email de notificações em /admin/settings');
-      console.log('3. Cadastrar ativos reais');
-      
-    } catch (error) {
-      console.error('❌ Erro ao limpar dados:', error.message);
-    } finally {
-      rl.close();
-    }
-  });
+```typescript
+const { data, error } = await supabase.rpc('clean_demo_data');
+if (error) {
+  toast.error('Erro ao limpar dados: ' + error.message);
+} else {
+  toast.success(`Dados limpos: ${data[0].deleted_events} eventos, ${data[0].deleted_assets} ativos`);
 }
-
-cleanDemoData();
 ```
 
 **2. Criar Documentação de Onboarding**
@@ -813,14 +820,22 @@ Criar arquivo `docs/ONBOARDING.md`:
 
 ## Passo 1: Limpar Dados Demo
 
-Execute o script de limpeza:
+⚠️ **IMPORTANTE:** Use SQL function do Supabase, não scripts Node.js.
 
-\`\`\`bash
-cd /home/ubuntu/rastreamento-operacional
-node scripts/clean-demo-data.mjs
+**Opção 1: Via Supabase Dashboard**
+
+1. Acesse Supabase Dashboard → SQL Editor
+2. Execute:
+
+\`\`\`sql
+SELECT * FROM clean_demo_data();
 \`\`\`
 
-Digite "SIM" quando solicitado para confirmar.
+**Opção 2: Via Interface Admin (se implementado)**
+
+1. Acesse `https://seu-dominio.com/admin/settings`
+2. Clique em "Limpar Dados Demo"
+3. Confirme a operação
 
 ## Passo 2: Criar Primeiro Usuário Admin
 
@@ -898,14 +913,30 @@ Em caso de dúvidas, consulte:
 - Issues no GitHub: https://github.com/tiagoriveira/Plataforma-de-inteligencia-operacional/issues
 \`\`\`
 
-**3. Adicionar Script ao package.json**
+**3. Criar Página Admin para Limpeza de Dados (Opcional)**
 
-```json
-{
-  "scripts": {
-    "clean:demo": "node scripts/clean-demo-data.mjs"
+Adicionar botão em `/admin/settings` para chamar a função SQL:
+
+```typescript
+const handleCleanDemoData = async () => {
+  if (!confirm('⚠️ ATENÇÃO: Isso irá deletar TODOS os dados do sistema! Tem certeza?')) {
+    return;
   }
-}
+
+  const secondConfirm = prompt('Digite "DELETAR TUDO" para confirmar:');
+  if (secondConfirm !== 'DELETAR TUDO') {
+    toast.error('Operação cancelada');
+    return;
+  }
+
+  const { data, error } = await supabase.rpc('clean_demo_data');
+  
+  if (error) {
+    toast.error('Erro: ' + error.message);
+  } else {
+    toast.success(`✅ Dados limpos com sucesso!`);
+  }
+};
 ```
 
 #### Critérios de Aceitação
@@ -915,9 +946,9 @@ Em caso de dúvidas, consulte:
 - ✅ Checklist de onboarding criado
 
 #### Arquivos Afetados
-- `scripts/clean-demo-data.mjs` (novo)
+- `supabase/migrations/008_clean_demo_data_function.sql` (novo)
 - `docs/ONBOARDING.md` (novo)
-- `package.json`
+- `client/src/pages/AdminSettings.tsx` (adicionar botão de limpeza)
 
 ---
 
