@@ -25,7 +25,7 @@ import AdminSettings from "./pages/AdminSettings";
 import AdminLogs from "./pages/AdminLogs";
 
 function PrivateRoute({ component: Component, ...rest }: any) {
-  const { user, loading } = useAuth();
+  const { user, loading, isLocked } = useAuth();
 
   if (loading) {
     return (
@@ -35,7 +35,35 @@ function PrivateRoute({ component: Component, ...rest }: any) {
     );
   }
 
-  return user ? <Component {...rest} /> : <Redirect to="/pin-login" />;
+  if (!user) {
+    return <Redirect to="/login" />;
+  }
+
+  if (isLocked) {
+    return <Redirect to="/pin-login" />;
+  }
+
+  return <Component {...rest} />;
+}
+
+function AdminRoute({ component: Component, ...rest }: any) {
+  const { user, loading, isLocked } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+      </div>
+    );
+  }
+
+  if (!user) return <Redirect to="/login" />;
+  if (isLocked) return <Redirect to="/pin-login" />;
+
+  const isAdmin = user.user_metadata?.role === 'admin';
+  if (!isAdmin) return <Redirect to="/" />;
+
+  return <Component {...rest} />;
 }
 
 function Router() {
@@ -79,16 +107,16 @@ function Router() {
         {() => <PrivateRoute component={QuickEvent} />}
       </Route>
       <Route path="/admin">
-        {() => <PrivateRoute component={Admin} />}
+        {() => <AdminRoute component={Admin} />}
       </Route>
       <Route path="/admin/users">
-        {() => <PrivateRoute component={AdminUsers} />}
+        {() => <AdminRoute component={AdminUsers} />}
       </Route>
       <Route path="/admin/settings">
-        {() => <PrivateRoute component={AdminSettings} />}
+        {() => <AdminRoute component={AdminSettings} />}
       </Route>
       <Route path="/admin/logs">
-        {() => <PrivateRoute component={AdminLogs} />}
+        {() => <AdminRoute component={AdminLogs} />}
       </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

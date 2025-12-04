@@ -1,0 +1,408 @@
+# PLANEJAMENTO TÉCNICO V1.1
+**Sistema de Rastreamento Industrial - Versão 1.1**
+
+---
+
+## 1. OBJETIVO TÉCNICO DA VERSÃO
+
+Transformar o MVP (coleta pura) em ferramenta de **gestão ativa**, mantendo a simplicidade operacional intocada. 
+
+**Meta central:** O operador continua registrando em < 10s, mas agora o sistema **alerta proativamente** quando ativos ficam ociosos e **orienta** o operador sobre o que fazer.
+
+---
+
+## 2. ESCOPO FECHADO V1.1
+
+### 2.1 Alertas Simples por Data (5 dias)
+- **Backend:** Query SQL que detecta ativos sem eventos há X dias
+- **Frontend:** Admin configura intervalo de alerta por ativo
+- **Notificação:** Email/WhatsApp 7 dias antes do vencimento
+- **Regra de negócio:** Prazo configurável (ex: "manutenção a cada 90 dias")
+
+### 2.2 Campo "Instruções" (2 dias)
+- **Backend:** Coluna `instructions` (TEXT) na tabela `assets`
+- **Frontend:** Editor simples (3-5 bullet points) no painel admin
+- **Exibição:** Ao escanear QR, operador vê instruções antes de registrar
+- **Validação:** Máximo 500 caracteres
+
+### 2.3 Tipo "Não Conforme" (1 dia)
+- **Backend:** Adicionar valor ao ENUM `event_type`
+- **Validação:** Se tipo = "não_conforme", foto é obrigatória
+- **Frontend:** Validação client-side + server-side
+- **Mensagem de erro:** "Foto obrigatória para registrar não conformidade"
+
+### 2.4 Export CSV Básico (3 dias)
+- **Backend:** Endpoint `/api/export/csv` com query filtrada por `asset_id`
+- **Formato:** `asset_code, event_type, timestamp, operator, description, photo_url`
+- **Limite inicial:** 10.000 linhas (proteção de performance)
+- **Frontend:** Botão "Exportar CSV" no histórico do ativo
+
+### 2.5 Campo "Marca/Modelo" (0.5 dia)
+- **Backend:** Colunas `brand` (VARCHAR 100) e `model` (VARCHAR 100) em `assets`
+- **Frontend:** Campos opcionais no cadastro do ativo
+- **Indexação:** Sem índice inicial (baixo volume de consultas)
+
+### 2.6 Tipo "Melhoria" (0.5 dia)
+- **Backend:** Adicionar valor ao ENUM `event_type`
+- **Frontend:** Nova opção no dropdown de eventos
+- **Sem validações extras:** Mesmo fluxo dos outros tipos
+
+---
+
+## 3. ARQUITETURA
+
+### 3.1 Ajustes no Supabase
+
+#### **Tabela `assets` (alterações)**
+```sql
+ALTER TABLE assets
+ADD COLUMN instructions TEXT,
+ADD COLUMN brand VARCHAR(100),
+ADD COLUMN model VARCHAR(100),
+ADD COLUMN maintenance_interval_days INTEGER DEFAULT NULL,
+ADD COLUMN last_maintenance_date TIMESTAMP DEFAULT NULL;
+
+-- Comentário: maintenance_interval_days = prazo entre manutenções (90, 180 dias, etc)
+-- Comentário: last_maintenance_date = atualizado automaticamente por trigger
+```
+
+#### **Tabela `events` (alterações)**
+```sql
+ALTER TYPE event_type ADD VALUE IF NOT EXISTS 'não_conforme';
+ALTER TYPE event_type ADD VALUE IF NOT EXISTS 'melhoria';
+
+-- Validação de foto obrigatória (CHECK constraint)
+ALTER TABLE events
+ADD CONSTRAINT photo_required_for_nonconformity
+CHECK (
+  (event_type != 'não_conforme') OR 
+  (event_type = 'não_conforme' AND photo_url IS NOT NULL)
+);
+```
+
+#### **Função para atualizar `last_maintenance_date`**
+```sql
+CREATE OR REPLACE FUNCTION update_last_maintenance_date()
+RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.event_type = 'manutenção' THEN
+    UPDATE assets
+    SET last_maintenance_date = NEW.created_at
+    WHERE id = NEW.asset_id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_maintenance_date
+AFTER INSERT ON events
+FOR EACH ROW
+EXECUTE FUNCTION update_last_maintenance_date();
+```
+
+#### **View para detectar ativos ociosos**
+```sql
+CREATE OR REPLACE VIEW assets_needing_alert AS
+SELECT 
+  a.id,
+  a.code,
+  a.name,
+  a.last_maintenance_date,
+  a.maintenance_interval_days,
+  (a.last_maintenance_date + (a.maintenance_interval_days || ' days')::INTERVAL) AS next_maintenance_due,
+  (a.last_maintenance_date + (a.maintenance_interval_days - 7 || ' days')::INTERVAL) AS alert_date
+FROM assets a
+WHERE 
+  a.maintenance_interval_days IS NOT NULL
+  AND (a.last_maintenance_date + (a.maintenance_interval_days - 7 || ' days')::INTERVAL) <= NOW()
+  AND (a.last_maintenance_date + (a.maintenance_interval_days || ' days')::INTERVAL) > NOW();
+```
+
+#### **Índices de Performance**
+```sql
+-- Acelera consultas de histórico por ativo + data
+CREATE INDEX idx_events_asset_date ON events(asset_id, created_at DESC);
+
+-- Acelera detecção de ativos ociosos
+CREATE INDEX idx_assets_maintenance ON assets(last_maintenance_date, maintenance_interval_days)
+WHERE maintenance_interval_days IS NOT NULL;
+```
+
+#### **Row Level Security (RLS) - Sem alterações**
+Manter políticas atuais:
+- `events`: INSERT público via token, SELECT público
+- `assets`: SELECT público, INSERT/UPDATE apenas admin
+
+### 3.2 Pontos de Atenção de Performance
+
+| Métrica | Limite Free Tier | Gatilho de Alerta | Ação |
+|---------|------------------|-------------------|------|
+| **Requisições/mês** | 500.000 | 400.000 (80%) | Monitorar dashboard Supabase diariamente |
+| **Storage de fotos** | 1GB | 800MB (80%) | Implementar compressão client-side (próximo sprint) |
+| **Tamanho do banco** | 500MB | 400MB (80%) | Avaliar arquivamento de eventos antigos (>1 ano) |
+| **Tempo de query** | N/A | >2s | Adicionar índices específicos ou otimizar queries |
+
+**Estratégia de mitigação:**
+- Implementar cache Redis (Upstash Free) se queries do dashboard ultrapassarem 1s
+- Paginação cursor-based no histórico (50 eventos por página)
+- Compressão de imagens no upload (reduzir 5MB para ~500KB com qualidade 80%)
+
+### 3.3 Estrutura de Dados Final
+
+#### **Schema Completo (pós V1.1)**
+
+```
+TABELA: assets
+├── id (UUID, PK)
+├── code (VARCHAR, UNIQUE) → QR Code
+├── name (VARCHAR)
+├── location (VARCHAR)
+├── instructions (TEXT) → NOVO V1.1
+├── brand (VARCHAR) → NOVO V1.1
+├── model (VARCHAR) → NOVO V1.1
+├── maintenance_interval_days (INTEGER) → NOVO V1.1
+├── last_maintenance_date (TIMESTAMP) → NOVO V1.1
+└── created_at (TIMESTAMP)
+
+TABELA: events
+├── id (UUID, PK)
+├── asset_id (UUID, FK → assets.id)
+├── event_type (ENUM: manutenção, limpeza, inspeção, não_conforme, melhoria)
+├── operator (VARCHAR, opcional)
+├── description (VARCHAR 200, opcional)
+├── photo_url (VARCHAR, obrigatório se event_type='não_conforme')
+├── created_at (TIMESTAMP, automático)
+└── CONSTRAINT: photo_required_for_nonconformity
+```
+
+---
+
+## 4. PLANO DE IMPLEMENTAÇÃO (12 DIAS ÚTEIS)
+
+### **BACKEND (6 dias)**
+
+#### Dia 1-2: Estrutura de Alertas
+1. Aplicar migrations SQL (tabelas, triggers, views)
+2. Criar edge function `check-maintenance-alerts` (Supabase Functions)
+3. Configurar Cron job (Supabase) para rodar diariamente às 08:00
+4. Integrar Twilio API (WhatsApp) e Resend (Email)
+5. Testar envio manual de alerta
+
+**Entregável:** Script SQL + Edge Function funcional
+
+#### Dia 3: Validações e Novos Tipos
+1. Adicionar valores ao ENUM `event_type`
+2. Implementar constraint de foto obrigatória
+3. Criar endpoint `/api/events` com validação server-side
+4. Testar casos de erro (foto faltando, tipo inválido)
+
+**Entregável:** Endpoint atualizado + testes manuais OK
+
+#### Dia 4-5: Export CSV
+1. Criar endpoint `/api/export/csv?asset_id=X`
+2. Implementar query otimizada com índices
+3. Adicionar header HTTP correto (`Content-Type: text/csv`)
+4. Limitar a 10.000 linhas com mensagem de erro se exceder
+5. Testar com datasets de 1.000, 5.000, 10.000 eventos
+
+**Entregável:** Endpoint funcional + validação de performance
+
+#### Dia 6: Campos Adicionais
+1. Atualizar endpoint `/api/assets` para aceitar `instructions`, `brand`, `model`, `maintenance_interval_days`
+2. Validar tamanho máximo de `instructions` (500 chars)
+3. Atualizar resposta do endpoint GET `/api/assets/:id` para incluir novos campos
+
+**Entregável:** API completa para V1.1
+
+---
+
+### **FRONTEND (5 dias)**
+
+#### Dia 1-2: Painel Admin - Configuração de Alertas
+1. Adicionar campos no formulário de cadastro/edição de ativo:
+   - `maintenance_interval_days` (número, ex: 90)
+   - `instructions` (textarea, 500 chars)
+   - `brand` e `model` (text inputs)
+2. Validação client-side (instruções não pode exceder 500 chars)
+3. UI minimalista: manter design atual (dark mode, KISS)
+
+**Entregável:** Formulário atualizado + validações
+
+#### Dia 3: Exibição de Instruções para Operador
+1. Ao escanear QR, buscar `assets/:id` e verificar se `instructions` existe
+2. Se existe, mostrar card acima do formulário de registro:
+   ```
+   📋 Instruções para este ativo:
+   • [Bullet 1]
+   • [Bullet 2]
+   ```
+3. Card deve ser colapsável (não bloquear o registro)
+
+**Entregável:** Fluxo operador atualizado
+
+#### Dia 4: Dropdown de Eventos + Validação de Foto
+1. Adicionar opções "Não Conforme" e "Melhoria" no dropdown
+2. Se usuário selecionar "Não Conforme":
+   - Campo de foto passa a ser obrigatório (disabled botão "Salvar" se vazio)
+   - Mensagem visual: "⚠️ Foto obrigatória para não conformidades"
+3. Validação antes de enviar request
+
+**Entregável:** Dropdown + validação funcional
+
+#### Dia 5: Botão Export CSV
+1. Adicionar botão "Exportar CSV" no histórico do ativo (painel admin)
+2. Ao clicar, fazer request para `/api/export/csv?asset_id=X`
+3. Download automático do arquivo `historico_[asset_code]_[data].csv`
+4. Mostrar loading spinner durante export
+
+**Entregável:** Feature de export funcional
+
+---
+
+### **INFRA E DEVOPS (1 dia)**
+
+#### Dia 1: Monitoramento e Deploy
+1. Configurar Sentry para capturar erros de:
+   - Falha no envio de alertas (Twilio/Resend)
+   - Queries lentas (> 2s)
+   - Uploads de foto que falham
+2. Configurar Vercel Analytics para medir:
+   - Tempo de carregamento da página de registro
+   - Taxa de sucesso de uploads
+3. Deploy em staging (Vercel Preview)
+4. Testes de carga com 500 requests simultâneos (usar Artillery ou k6)
+5. Deploy em produção com rollout 10% → 30% → 100%
+
+**Entregável:** V1.1 em produção com monitoramento ativo
+
+---
+
+## 5. CHECKLIST DE QUALIDADE (GO-LIVE)
+
+### **Critérios de Bloqueio (P0/P1)**
+
+- [ ] **Zero bugs P0:** Sistema inacessível, perda de dados, registro impossível
+- [ ] **Máximo 2 bugs P1** (com workaround documentado)
+  - Exemplo P1: Export CSV falha para ativos com >5.000 eventos (workaround: filtrar por período)
+
+### **Validações Técnicas**
+
+- [ ] Tempo de resposta `/api/events` < 1s (mediana de 100 requests)
+- [ ] Upload de foto (5MB) completa em < 10s (3G simulado)
+- [ ] Query da view `assets_needing_alert` executa em < 500ms
+- [ ] Export CSV de 1.000 eventos completa em < 3s
+- [ ] Constraint de foto obrigatória funciona (teste com request direto ao backend)
+- [ ] Trigger de `last_maintenance_date` atualiza corretamente após evento
+
+### **Testes de Regressão**
+
+- [ ] Fluxo V1.0 continua idêntico (operador não nota mudanças no registro)
+- [ ] QR Code scanning ainda funciona em < 3s
+- [ ] Histórico imutável: eventos antigos não foram alterados
+- [ ] Todas as 6 telas originais continuam funcionando
+
+### **Monitoramento Pré-Go-Live**
+
+- [ ] Sentry configurado e recebendo eventos de teste
+- [ ] Dashboard Supabase mostrando métricas de uso
+- [ ] Cron job de alertas rodando e logando execuções
+- [ ] Backup manual do banco de dados realizado
+
+---
+
+## 6. RISCOS TÉCNICOS E MITIGAÇÃO
+
+| Risco | Probabilidade | Impacto | Mitigação |
+|-------|---------------|---------|-----------|
+| **Alertas não enviados (Twilio/Resend offline)** | Média | Alto | Implementar retry com backoff exponencial (3 tentativas). Log em tabela `alert_failures` para auditoria. |
+| **Query lenta na view `assets_needing_alert`** | Baixa | Médio | Índice `idx_assets_maintenance` já criado. Se necessário, cachear resultado por 1h. |
+| **Export CSV trava com datasets grandes** | Média | Baixo | Limite hard de 10.000 linhas. Documentar workaround (filtrar por período). Implementar paginação no V1.2 se necessário. |
+| **Foto obrigatória gera reclamações** | Alta | Baixo | Documentar lógica claramente no onboarding. Se >10% dos clientes reclamarem, tornar opcional e adicionar apenas um warning. |
+| **Free Tier Supabase estourado antes do esperado** | Baixa | Alto | Monitoramento diário do dashboard. Preparar script de migração para Pro ($25/mês) com 1 clique. |
+| **Constraint de foto quebra fluxo existente** | Baixa | Crítico | Aplicar constraint apenas para novos eventos (`created_at > data_deploy_v1.1`). Eventos antigos sem foto não são afetados. |
+
+### **Protocolo de Rollback**
+
+Se **Error Rate > 5%** ou **Query Time > 3s** nas primeiras 24h:
+
+1. Reverter deployment no Vercel (1 clique)
+2. Remover constraint de foto obrigatória via SQL
+3. Desativar Cron job de alertas
+4. Manter novos campos (`instructions`, `brand`, `model`) - não causam problemas
+5. Comunicar clientes beta via WhatsApp: "Pequeno ajuste técnico, sistema volta ao normal"
+
+---
+
+## 7. ENTREGA FINAL PARA A EQUIPE
+
+### **Documentação Técnica**
+
+1. **SQL Migrations:** Arquivo `v1.1_migrations.sql` com todos os comandos (executar em staging primeiro)
+2. **Endpoints Novos/Alterados:**
+   - POST `/api/assets` → Aceita novos campos
+   - GET `/api/assets/:id` → Retorna instruções
+   - POST `/api/events` → Valida foto obrigatória
+   - GET `/api/export/csv?asset_id=X` → Novo endpoint
+3. **Edge Function:** `check-maintenance-alerts` (código TypeScript + configuração Cron)
+4. **Componentes React:**
+   - `AssetForm.tsx` → Atualizar com novos campos
+   - `InstructionsCard.tsx` → Novo componente colapsável
+   - `EventDropdown.tsx` → Adicionar 2 opções
+   - `ExportButton.tsx` → Novo componente
+
+### **Checklist de Dev**
+
+```markdown
+## Backend
+- [ ] Aplicar migrations em staging
+- [ ] Testar triggers manualmente (inserir evento → verificar last_maintenance_date)
+- [ ] Criar edge function de alertas
+- [ ] Configurar Cron job (diário, 08:00 BRT)
+- [ ] Integrar Twilio (WhatsApp) e Resend (Email)
+- [ ] Criar endpoint /api/export/csv
+- [ ] Adicionar validação server-side de foto obrigatória
+- [ ] Testar performance com dataset de 10.000 eventos
+
+## Frontend
+- [ ] Atualizar AssetForm com 4 novos campos
+- [ ] Criar InstructionsCard (colapsável, acima do formulário)
+- [ ] Adicionar "Não Conforme" e "Melhoria" ao dropdown
+- [ ] Implementar validação client-side de foto obrigatória
+- [ ] Criar botão Export CSV no histórico
+- [ ] Testar fluxo completo em staging
+
+## Infra
+- [ ] Configurar Sentry (errors + performance)
+- [ ] Configurar Vercel Analytics
+- [ ] Realizar backup do banco de produção
+- [ ] Deploy em staging
+- [ ] Testes de carga (500 requests)
+- [ ] Deploy gradual (10% → 30% → 100%)
+
+## QA
+- [ ] Validar todos os critérios do Checklist de Go-Live
+- [ ] Testar em 3 dispositivos móveis (Android, iOS, diferentes tamanhos)
+- [ ] Validar tempos de resposta (< 3s para todas as operações)
+- [ ] Confirmar que fluxo V1.0 não foi alterado
+```
+
+### **Estimativa Final**
+
+- **Backend:** 6 dias
+- **Frontend:** 5 dias
+- **Infra/Deploy:** 1 dia
+- **Total:** 12 dias úteis
+
+**Condição para início:** Dev disponível para 40h nos próximos 30 dias (conforme documento PM).
+
+### **Definição de "Pronto"**
+
+V1.1 está pronto quando:
+1. Todos os itens do Checklist de QA estão ✅
+2. Sistema passou 24h em produção com error rate < 2%
+3. Pelo menos 1 alerta foi enviado e confirmado por cliente beta
+4. Tempo de registro continua < 10s (validado com 3 operadores reais)
+
+---
+
+**Status:** Aguardando aprovação para iniciar implementação.

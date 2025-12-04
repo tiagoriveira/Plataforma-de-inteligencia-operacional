@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { supabase, logAction } from '@/lib/supabase';
 
 interface GlobalSettings {
   daysWithoutUseAlert: number;
@@ -24,13 +25,45 @@ export default function AdminSettings() {
   });
   const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  async function loadSettings() {
+    try {
+      const { data, error } = await supabase.from('system_settings').select('*');
+      if (error) throw error;
+
+      if (data) {
+        const newSettings = { ...settings };
+        data.forEach((item: any) => {
+          if (item.key === 'days_until_neglected') newSettings.daysWithoutUseAlert = Number(item.value);
+          if (item.key === 'min_events_per_month') newSettings.minEventsPerMonth = Number(item.value);
+          if (item.key === 'email_notifications') newSettings.emailNotifications = Boolean(item.value);
+          if (item.key === 'auto_report_day') newSettings.autoReportDay = Number(item.value);
+        });
+        setSettings(newSettings);
+      }
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+    }
+  }
+
   async function handleSave() {
     setLoading(true);
     try {
-      // Salvar configurações no Supabase (tabela settings)
-      // Por enquanto, apenas simular
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
+      const updates = [
+        { key: 'days_until_neglected', value: settings.daysWithoutUseAlert },
+        { key: 'min_events_per_month', value: settings.minEventsPerMonth },
+        { key: 'email_notifications', value: settings.emailNotifications },
+        { key: 'auto_report_day', value: settings.autoReportDay }
+      ];
+
+      const { error } = await supabase.from('system_settings').upsert(updates);
+      if (error) throw error;
+
+      await logAction('update_settings', 'system', null, settings);
+
       toast.success('Configurações salvas com sucesso!');
     } catch (error) {
       console.error('Erro ao salvar configurações:', error);
@@ -132,14 +165,12 @@ export default function AdminSettings() {
               </div>
               <button
                 onClick={() => setSettings({ ...settings, emailNotifications: !settings.emailNotifications })}
-                className={`relative w-14 h-8 rounded-full transition-colors ${
-                  settings.emailNotifications ? 'bg-green-500' : 'bg-gray-600'
-                }`}
+                className={`relative w-14 h-8 rounded-full transition-colors ${settings.emailNotifications ? 'bg-green-500' : 'bg-gray-600'
+                  }`}
               >
                 <div
-                  className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${
-                    settings.emailNotifications ? 'translate-x-7' : 'translate-x-1'
-                  }`}
+                  className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-transform ${settings.emailNotifications ? 'translate-x-7' : 'translate-x-1'
+                    }`}
                 />
               </button>
             </div>

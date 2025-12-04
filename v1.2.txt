@@ -1,0 +1,567 @@
+# PLANEJAMENTO TÉCNICO V1.2
+**Sistema de Rastreamento Industrial - Versão 1.2 (Intelligence Layer)**
+
+---
+
+## 1. OBJETIVO TÉCNICO DA VERSÃO
+
+Adicionar a **Camada de Visualização** (Layer 3 da arquitetura em camadas) sem tocar na captura de dados. O sistema passa de "coletor passivo" para "analista ativo", entregando insights acionáveis para gestores.
+
+**Meta central:** Gestor consegue tomar decisões em < 5 minutos olhando 3 KPIs principais, sem precisar analisar centenas de linhas de histórico. Operador continua registrando exatamente como antes.
+
+---
+
+## 2. ESCOPO FECHADO V1.2
+
+### 2.1 Dashboard Minimalista (3 KPIs) - 4 dias
+
+**KPI 1: Total de Eventos no Mês**
+- Contador simples agregado por `MONTH(created_at)`
+- Comparação com mês anterior (% de variação)
+- Gráfico de linha simples (últimos 6 meses)
+
+**KPI 2: Ativos com Uso Saudável**
+- Critério: ≥3 eventos/mês no último mês
+- Percentual sobre total de ativos
+- Lista top 5 ativos mais ativos (drill-down)
+
+**KPI 3: Ativos Negligenciados**
+- Critério: >30 dias sem nenhum evento
+- Número absoluto + lista com código e nome
+- Destaque visual (badge vermelho)
+
+**Gráfico Adicional: Distribuição de Tipos de Evento**
+- Pizza chart: % de cada tipo (manutenção, limpeza, inspeção, não_conforme, melhoria)
+- Filtro por período (últimos 7/30/90 dias)
+
+### 2.2 Filtros Simples no Histórico - 2 dias
+
+**Filtro por Tipo de Evento**
+- Dropdown: Todos / Manutenção / Limpeza / Inspeção / Não Conforme / Melhoria
+- Aplicado via query SQL (WHERE event_type = ?)
+
+**Filtro por Período**
+- Botões rápidos: Últimos 7 dias / 30 dias / 90 dias / Tudo
+- Aplicado via query SQL (WHERE created_at >= ?)
+
+**Combinação de Filtros**
+- Ambos podem ser usados simultaneamente
+- URL persistente: `/asset/ABC123?type=manutenção&period=30`
+
+### 2.3 Relatório PDF Automático - 6 dias
+
+**Estrutura do Relatório (2 páginas)**
+
+**Página 1: Resumo Executivo**
+- Logo do sistema + período do relatório
+- 3 KPIs principais (mesmo do dashboard)
+- Gráfico de tendência de eventos (6 meses)
+- Tabela: Top 5 ativos mais usados (código, nome, total de eventos)
+
+**Página 2: Alertas e Recomendações**
+- Lista de ativos negligenciados (>30 dias sem uso)
+- Lista de não conformidades do mês (se houver)
+- Observação automática (ex: "Redução de 15% nos eventos comparado ao mês anterior")
+
+**Geração e Envio**
+- Cron job: 1º dia útil do mês, às 09:00
+- Email para admin com PDF anexado
+- Assunto: "Relatório Mensal - [Nome da Empresa] - [Mês/Ano]"
+- Armazenamento opcional: Salvar PDF no Supabase Storage (últimos 6 meses)
+
+### 2.4 Templates de Checklist - 2 dias
+
+**3 Templates Pré-Configurados:**
+
+**Template 1: Checklist 5S**
+```
+☐ Seiri (Utilização): Remover itens desnecessários
+☐ Seiton (Organização): Organizar ferramentas
+☐ Seiso (Limpeza): Limpar equipamento
+☐ Seiketsu (Padronização): Verificar conformidade
+☐ Shitsuke (Disciplina): Confirmar rotina
+```
+
+**Template 2: Segurança (NR-12)**
+```
+☐ Proteções físicas intactas
+☐ Botão de emergência funcional
+☐ Sinalização visível
+☐ EPIs disponíveis no local
+☐ Área ao redor desobstruída
+```
+
+**Template 3: Manutenção Preventiva Básica**
+```
+☐ Lubrificação realizada
+☐ Verificação de ruídos anormais
+☐ Inspeção visual de vazamentos
+☐ Teste de funcionamento
+☐ Registro de leituras (se aplicável)
+```
+
+**Funcionalidade:**
+- Admin escolhe template ao cadastrar ativo
+- Template aparece no campo `instructions` (V1.1) pré-preenchido
+- Admin pode editar/customizar após aplicar template
+- Operador vê checklist ao escanear QR (mesma interface V1.1)
+
+---
+
+## 3. ARQUITETURA
+
+### 3.1 Ajustes no Supabase
+
+#### **Nova Tabela: `dashboard_cache`**
+```sql
+CREATE TABLE dashboard_cache (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  cache_key VARCHAR(100) UNIQUE NOT NULL,
+  data JSONB NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE INDEX idx_dashboard_cache_key ON dashboard_cache(cache_key);
+CREATE INDEX idx_dashboard_cache_expiry ON dashboard_cache(expires_at);
+
+-- Cleanup automático de cache expirado (Cron job)
+-- Roda diariamente às 03:00
+```
+
+**Lógica de Cache:**
+- KPIs são calculados 1x por hora (cache de 1h)
+- Key: `kpis_summary_[user_id]_[YYYYMMDDHH]`
+- Se cache existe e não expirou, retorna do cache
+- Se expirou, recalcula e atualiza cache
+
+#### **Nova Tabela: `monthly_reports`**
+```sql
+CREATE TABLE monthly_reports (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL, -- FK para auth.users (se houver multi-tenant)
+  report_month DATE NOT NULL, -- Ex: 2025-11-01 (primeiro dia do mês)
+  pdf_url VARCHAR(500), -- Supabase Storage path
+  email_sent BOOLEAN DEFAULT FALSE,
+  generated_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, report_month)
+);
+
+CREATE INDEX idx_reports_user_month ON monthly_reports(user_id, report_month DESC);
+```
+
+#### **Views Otimizadas para KPIs**
+
+**View 1: Monthly Event Count**
+```sql
+CREATE MATERIALIZED VIEW mv_monthly_events AS
+SELECT 
+  DATE_TRUNC('month', created_at) AS month,
+  COUNT(*) AS total_events,
+  COUNT(DISTINCT asset_id) AS active_assets
+FROM events
+GROUP BY DATE_TRUNC('month', created_at);
+
+CREATE UNIQUE INDEX idx_mv_monthly_events ON mv_monthly_events(month);
+
+-- Refresh diário (Cron job às 02:00)
+REFRESH MATERIALIZED VIEW CONCURRENTLY mv_monthly_events;
+```
+
+**View 2: Asset Health Status**
+```sql
+CREATE OR REPLACE VIEW v_asset_health AS
+SELECT 
+  a.id,
+  a.code,
+  a.name,
+  COUNT(e.id) AS events_last_30_days,
+  MAX(e.created_at) AS last_event_date,
+  CASE 
+    WHEN MAX(e.created_at) < NOW() - INTERVAL '30 days' THEN 'negligenciado'
+    WHEN COUNT(e.id) >= 3 THEN 'saudável'
+    ELSE 'atenção'
+  END AS health_status
+FROM assets a
+LEFT JOIN events e ON e.asset_id = a.id AND e.created_at >= NOW() - INTERVAL '30 days'
+GROUP BY a.id, a.code, a.name;
+```
+
+**View 3: Event Type Distribution**
+```sql
+CREATE OR REPLACE VIEW v_event_distribution AS
+SELECT 
+  event_type,
+  COUNT(*) AS count,
+  ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER(), 2) AS percentage
+FROM events
+WHERE created_at >= NOW() - INTERVAL '30 days'
+GROUP BY event_type;
+```
+
+#### **Novos Índices**
+
+```sql
+-- Acelera filtros de histórico
+CREATE INDEX idx_events_type_date ON events(event_type, created_at DESC);
+
+-- Acelera contagem de eventos por ativo
+CREATE INDEX idx_events_asset_count ON events(asset_id)
+WHERE created_at >= NOW() - INTERVAL '90 days'; -- Partial index para reduzir tamanho
+```
+
+### 3.2 Arquitetura de Geração de PDF
+
+**Stack Técnica:**
+- **Biblioteca:** Puppeteer (via Supabase Edge Function)
+- **Template:** HTML + Tailwind CSS (renderizado server-side)
+- **Storage:** Supabase Storage bucket `monthly-reports/`
+- **Limites:** Max 5MB por PDF, retenção de 6 meses
+
+**Fluxo:**
+```
+Cron Job (1º dia útil, 09:00)
+  ↓
+Edge Function: generate-monthly-report
+  ↓
+1. Query KPIs do mês anterior
+2. Renderizar HTML template
+3. Puppeteer: HTML → PDF
+4. Upload PDF para Supabase Storage
+5. Salvar registro em monthly_reports
+6. Enviar email (Resend) com PDF anexado
+  ↓
+Log de sucesso/falha (Sentry)
+```
+
+**Fallback:** Se Puppeteer falhar, gerar email HTML com os mesmos dados (sem PDF).
+
+### 3.3 Pontos de Atenção de Performance
+
+| Métrica | Alvo V1.2 | Estratégia |
+|---------|-----------|------------|
+| **Dashboard Load Time** | < 2s | Cache de 1h + Materialized View |
+| **Filtro de Histórico** | < 1s | Índices compostos + Paginação (50 itens) |
+| **Geração de PDF** | < 30s | Executar em background (não bloqueia UI) |
+| **Query de KPIs** | < 500ms | Materialized View (refresh diário) |
+| **Storage de PDFs** | < 100MB | Cleanup automático (>6 meses) |
+
+**Monitoramento Adicional:**
+- Alertar se geração de PDF falhar 2x consecutivas
+- Monitorar taxa de hit do cache (meta: >80%)
+- Verificar tamanho dos PDFs (média esperada: 1-2MB)
+
+---
+
+## 4. PLANO DE IMPLEMENTAÇÃO (14 DIAS ÚTEIS)
+
+### **BACKEND (8 dias)**
+
+#### Dia 1-2: Views e Cache Layer
+1. Criar tabela `dashboard_cache`
+2. Criar Materialized View `mv_monthly_events`
+3. Criar Views `v_asset_health` e `v_event_distribution`
+4. Implementar lógica de cache no endpoint `/api/dashboard/kpis`
+5. Criar Cron job para refresh da Materialized View (02:00 diário)
+6. Testar performance: query direta vs. cache vs. materialized view
+
+**Entregável:** Endpoint `/api/dashboard/kpis` retornando 3 KPIs em < 500ms
+
+#### Dia 3: Endpoint de Filtros
+1. Atualizar endpoint `/api/assets/:id/events` para aceitar query params:
+   - `?type=manutenção&period=30`
+2. Implementar validação (type deve ser enum válido, period deve ser número)
+3. Aplicar índices `idx_events_type_date`
+4. Adicionar paginação cursor-based (50 itens por página)
+5. Testar com dataset de 5.000 eventos
+
+**Entregável:** Endpoint de histórico com filtros funcionais
+
+#### Dia 4-6: Sistema de Relatório PDF
+1. Criar tabela `monthly_reports`
+2. Criar Edge Function `generate-monthly-report`:
+   - Query KPIs do mês anterior
+   - Buscar top 5 ativos e ativos negligenciados
+   - Renderizar template HTML (Handlebars ou EJS)
+   - Gerar PDF com Puppeteer
+3. Upload PDF para Supabase Storage
+4. Integrar Resend para envio de email
+5. Criar endpoint `/api/reports/preview` (para testar template)
+6. Configurar Cron job (1º dia útil, 09:00)
+
+**Entregável:** Sistema completo de geração e envio de PDF
+
+#### Dia 7-8: Templates de Checklist
+1. Criar tabela `checklist_templates`:
+```sql
+CREATE TABLE checklist_templates (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  items JSONB NOT NULL, -- Array de strings
+  category VARCHAR(50), -- '5s', 'segurança', 'preventiva'
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+2. Inserir 3 templates pré-definidos via seed script
+3. Criar endpoint `/api/templates` (GET: listar, POST: criar custom)
+4. Atualizar endpoint `/api/assets` para aceitar `template_id` (opcional)
+5. Lógica: Se `template_id` fornecido, copiar `items` do template para `instructions` do ativo
+
+**Entregável:** Sistema de templates funcional
+
+---
+
+### **FRONTEND (5 dias)**
+
+#### Dia 1-2: Dashboard Page
+1. Criar página `/dashboard` (nova rota React)
+2. Componentes:
+   - `KPICard.tsx` (reutilizável para os 3 KPIs)
+   - `EventTrendChart.tsx` (Line chart com Recharts)
+   - `EventDistributionChart.tsx` (Pie chart com Recharts)
+3. Layout: Grid 3 colunas (KPIs) + 2 gráficos em linha
+4. Loading state: Skeleton screens enquanto carrega dados
+5. Implementar auto-refresh a cada 5 minutos (opcional, via polling)
+
+**Entregável:** Dashboard funcional e visualmente limpo
+
+#### Dia 3: Filtros no Histórico
+1. Adicionar barra de filtros no topo da página de histórico do ativo
+2. Componentes:
+   - Dropdown de tipo de evento
+   - Botões de período (7/30/90 dias)
+3. Aplicar filtros via query params (atualiza URL)
+4. Mostrar badge "Filtro ativo: Manutenção, últimos 30 dias"
+5. Botão "Limpar filtros"
+
+**Entregável:** Sistema de filtros integrado ao histórico
+
+#### Dia 4: Seletor de Template
+1. No formulário de cadastro de ativo, adicionar seção "Templates de Checklist"
+2. Dropdown com 3 opções pré-definidas + "Nenhum" + "Custom"
+3. Preview do template ao selecionar (mostrar itens do checklist)
+4. Botão "Aplicar Template" preenche campo `instructions`
+5. Admin pode editar após aplicar
+
+**Entregável:** Seletor de templates no cadastro de ativo
+
+#### Dia 5: Relatórios (UI Admin)
+1. Criar página `/reports` (lista de relatórios gerados)
+2. Tabela: Mês | Data de Geração | Download PDF | Email Enviado?
+3. Botão "Gerar Relatório Manualmente" (para teste)
+4. Botão de preview: abre `/api/reports/preview` em nova aba
+
+**Entregável:** Interface de gestão de relatórios
+
+---
+
+### **INFRA E DEVOPS (1 dia)**
+
+#### Dia 1: Deploy e Monitoramento
+1. Configurar Supabase Storage bucket `monthly-reports/` com RLS:
+   - Apenas admins podem ler/escrever
+2. Configurar 3 Cron jobs no Supabase:
+   - 02:00 - Refresh Materialized View
+   - 03:00 - Cleanup de cache expirado
+   - 09:00 (1º dia útil) - Geração de relatório mensal
+3. Adicionar métricas no Sentry:
+   - Custom metric: `dashboard.kpi_load_time`
+   - Custom metric: `pdf.generation_time`
+4. Deploy em staging com dados de teste (6 meses simulados)
+5. Validar geração de PDF em staging
+6. Deploy gradual em produção (10% → 50% → 100%)
+
+**Entregável:** V1.2 em produção com monitoramento
+
+---
+
+## 5. CHECKLIST DE QUALIDADE (GO-LIVE)
+
+### **Critérios de Bloqueio (P0/P1)**
+
+- [ ] **Zero bugs P0:** Dashboard inacessível, PDF não gera, KPIs incorretos
+- [ ] **Máximo 2 bugs P1** (com workaround)
+  - Exemplo P1: Gráfico não renderiza no mobile (workaround: visualizar no desktop)
+
+### **Validações Técnicas**
+
+- [ ] Dashboard carrega em < 2s (mediana de 50 acessos)
+- [ ] Cache de KPIs tem hit rate > 70% (verificar logs)
+- [ ] Filtros retornam resultado em < 1s para histórico de 1.000 eventos
+- [ ] PDF gerado tem entre 1-3MB (não exceder 5MB)
+- [ ] Email com PDF chega na caixa de entrada (não vai para spam)
+- [ ] Materialized View refresh completa em < 10s
+- [ ] Templates de checklist carregam em < 500ms
+
+### **Validações Funcionais**
+
+- [ ] KPI "Total de Eventos" bate com COUNT(*) manual no banco
+- [ ] KPI "Ativos Saudáveis" considera apenas últimos 30 dias
+- [ ] KPI "Negligenciados" identifica corretamente ativos sem eventos há >30 dias
+- [ ] Gráfico de tendência mostra últimos 6 meses (não mais, não menos)
+- [ ] Filtro combina tipo + período corretamente (testar todas as combinações)
+- [ ] PDF contém todos os dados esperados (verificar manualmente 1 exemplo)
+- [ ] Templates pré-preenchem campo `instructions` sem sobrescrever dados existentes
+
+### **Testes de Regressão**
+
+- [ ] V1.0 e V1.1 continuam funcionando (registro, alertas, export CSV)
+- [ ] Performance de registro não foi afetada (< 10s)
+- [ ] Histórico sem filtros continua mostrando todos os eventos
+
+### **Monitoramento Pré-Go-Live**
+
+- [ ] Sentry capturando erros de geração de PDF
+- [ ] Logs de Cron jobs visíveis no Supabase Dashboard
+- [ ] Alertar se PDF não for gerado no 1º dia útil do mês
+- [ ] Backup do banco realizado (inclui novas tabelas)
+
+---
+
+## 6. RISCOS TÉCNICOS E MITIGAÇÃO
+
+| Risco | Probabilidade | Impacto | Mitigação |
+|-------|---------------|---------|-----------|
+| **Puppeteer timeout (PDF não gera)** | Média | Alto | Timeout de 30s. Se falhar, enviar email HTML sem PDF. Retry automático 1x após 1h. |
+| **Materialized View fica desatualizada** | Baixa | Médio | Cron job com alertas. Se falhar refresh, usar query direta (mais lenta) como fallback. |
+| **Cache desatualizado mostra dados antigos** | Baixa | Baixo | TTL de 1h é aceitável para dashboard gerencial. Adicionar botão "Atualizar" para forçar refresh. |
+| **Query de KPIs lenta (>2s) com muitos dados** | Média | Médio | Materialized View + Índices. Se necessário, implementar pré-agregação semanal no V1.3. |
+| **Email com PDF vai para spam** | Alta | Médio | Configurar SPF/DKIM no Resend. Testar com 5 provedores (Gmail, Outlook, Yahoo, etc). Incluir texto alternativo. |
+| **Storage de PDFs estoura Free Tier** | Baixa | Baixo | Cleanup automático de PDFs >6 meses. Limite de 1 relatório/mês/cliente = ~2MB × 80 clientes × 6 meses = ~960MB (OK). |
+| **Gráficos não renderizam no mobile** | Média | Baixo | Recharts é responsivo. Testar em 3 tamanhos de tela. Se necessário, simplificar gráficos em telas <768px. |
+
+### **Protocolo de Rollback**
+
+Se **Dashboard Load Time > 5s** ou **PDF Failures > 50%** nas primeiras 48h:
+
+1. Desativar cache (usar queries diretas temporariamente)
+2. Desativar geração automática de PDF (apenas manual)
+3. Manter filtros e templates ativos (não causam problemas)
+4. Investigar queries lentas com EXPLAIN ANALYZE
+5. Aplicar hotfix específico (ex: adicionar índice faltante)
+6. Reativar features gradualmente após correção
+
+---
+
+## 7. ENTREGA FINAL PARA A EQUIPE
+
+### **Documentação Técnica**
+
+1. **SQL Migrations:** Arquivo `v1.2_migrations.sql`
+   - Tabelas: `dashboard_cache`, `monthly_reports`, `checklist_templates`
+   - Views: `v_asset_health`, `v_event_distribution`
+   - Materialized View: `mv_monthly_events`
+   - Índices: `idx_events_type_date`, `idx_events_asset_count`
+
+2. **Endpoints Novos:**
+   - GET `/api/dashboard/kpis` → Retorna 3 KPIs + gráficos
+   - GET `/api/assets/:id/events?type=X&period=Y` → Histórico filtrado
+   - GET `/api/templates` → Lista templates de checklist
+   - POST `/api/templates` → Cria template custom
+   - GET `/api/reports` → Lista relatórios gerados
+   - GET `/api/reports/preview` → Preview do PDF (HTML)
+   - POST `/api/reports/generate` → Gera relatório manual
+
+3. **Edge Functions:**
+   - `generate-monthly-report` (PDF generation)
+   - `refresh-materialized-views` (Manutenção)
+   - `cleanup-expired-cache` (Limpeza)
+
+4. **Cron Jobs (Supabase):**
+   - `02:00 diário` → Refresh Materialized View
+   - `03:00 diário` → Cleanup cache expirado
+   - `09:00 1º dia útil` → Gerar relatório mensal
+
+5. **Componentes React:**
+   - `Dashboard.tsx` (nova página)
+   - `KPICard.tsx`
+   - `EventTrendChart.tsx` (Recharts)
+   - `EventDistributionChart.tsx` (Recharts)
+   - `HistoryFilters.tsx`
+   - `TemplateSelector.tsx`
+   - `ReportsList.tsx`
+
+### **Checklist de Dev**
+
+```markdown
+## Backend
+- [ ] Criar tabelas (dashboard_cache, monthly_reports, checklist_templates)
+- [ ] Criar Materialized View mv_monthly_events
+- [ ] Criar Views v_asset_health e v_event_distribution
+- [ ] Implementar cache layer no endpoint /api/dashboard/kpis
+- [ ] Adicionar filtros ao endpoint de histórico
+- [ ] Criar sistema de templates (seed + CRUD)
+- [ ] Desenvolver Edge Function de geração de PDF
+- [ ] Integrar Resend para envio de email
+- [ ] Configurar 3 Cron jobs no Supabase
+- [ ] Testar geração de PDF em staging (validar HTML → PDF)
+- [ ] Adicionar índices de performance
+
+## Frontend
+- [ ] Criar página /dashboard com 3 KPIs
+- [ ] Implementar gráficos (Recharts): linha + pizza
+- [ ] Adicionar barra de filtros no histórico
+- [ ] Criar seletor de templates no cadastro de ativo
+- [ ] Criar página /reports (lista + download)
+- [ ] Implementar loading states (Skeleton screens)
+- [ ] Validar responsividade (desktop, tablet, mobile)
+
+## Infra
+- [ ] Configurar Supabase Storage bucket (monthly-reports/)
+- [ ] Configurar RLS para bucket (apenas admins)
+- [ ] Configurar SPF/DKIM no Resend
+- [ ] Testar envio de email em 5 provedores
+- [ ] Configurar métricas custom no Sentry
+- [ ] Realizar backup do banco (incluir novas tabelas)
+- [ ] Deploy em staging
+- [ ] Validar geração de PDF em staging (pelo menos 1 exemplo completo)
+- [ ] Deploy gradual em produção (10% → 50% → 100%)
+
+## QA
+- [ ] Validar todos os critérios do Checklist de Go-Live
+- [ ] Testar dashboard em 3 tamanhos de tela
+- [ ] Validar KPIs manualmente (comparar com COUNT do banco)
+- [ ] Testar todas as combinações de filtros
+- [ ] Gerar 1 PDF manualmente e validar conteúdo
+- [ ] Confirmar que emails não vão para spam
+- [ ] Validar tempos de resposta (dashboard < 2s, filtros < 1s)
+- [ ] Confirmar que V1.0 e V1.1 não foram afetados
+```
+
+### **Estimativa Final**
+
+- **Backend:** 8 dias
+- **Frontend:** 5 dias
+- **Infra/Deploy:** 1 dia
+- **Total:** 14 dias úteis
+
+**Pré-requisito:** V1.1 deve estar em produção e estável por pelo menos 2 semanas antes de iniciar V1.2.
+
+### **Definição de "Pronto"**
+
+V1.2 está pronto quando:
+1. Todos os itens do Checklist de QA estão ✅
+2. Dashboard carregado por 10 usuários reais com load time < 2s (mediana)
+3. Pelo menos 1 relatório PDF gerado e enviado com sucesso
+4. Sistema passou 48h em produção com error rate < 2%
+5. Cache hit rate > 70% (verificado nos logs)
+6. Zero reclamações sobre performance do histórico após adicionar filtros
+
+### **Critério de Rollout para 100% dos Clientes**
+
+Conforme documento PM:
+- ✅ ≥4 de 6-8 clientes beta aprovarem a V1.2
+- ✅ Nenhum bug P0 nas primeiras 2 semanas
+- ✅ Pelo menos 1 cliente relatar que o dashboard ajudou a tomar uma decisão
+
+**Protocolo:** Se <4 clientes aprovarem, coletar feedback qualitativo via entrevista de 15 min e aplicar ajustes antes de expandir.
+
+---
+
+**Status:** Aguardando conclusão e estabilização da V1.1 para iniciar implementação da V1.2.
+
+**Dependências:**
+- V1.1 em produção há ≥2 semanas
+- ≥8 clientes ativos gerando dados consistentes
+- Orçamento de R$ 5-8k disponível para dev intensivo (conforme documento PM)

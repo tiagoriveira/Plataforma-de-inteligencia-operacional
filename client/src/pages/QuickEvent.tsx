@@ -44,16 +44,16 @@ export default function QuickEvent() {
             icon: <Sparkles className="h-4 w-4 text-blue-500" />,
           });
         }
-        
+
         if (eventType === "ISSUE") {
-            const category = suggestCategory(standardized);
-            if (category) {
-                toast.success(`Categoria sugerida: ${category}`, {
-                    icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
-                });
-            }
+          const category = suggestCategory(standardized);
+          if (category) {
+            toast.success(`Categoria sugerida: ${category}`, {
+              icon: <CheckCircle2 className="h-4 w-4 text-green-500" />
+            });
+          }
         }
-        
+
         setIsStandardizing(false);
       }, 500);
     }
@@ -67,22 +67,22 @@ export default function QuickEvent() {
       });
       return;
     }
-    
+
     setSaving(true);
-    
+
     try {
       // Buscar ativo TOR-001 (demo - em produção seria via scanner)
       const asset = await getAssetByCode("TOR-001");
-      
+
       let photoUrl = null;
-      
+
       // Upload de foto se houver
       if (photoFile) {
         setUploading(true);
-        photoUrl = await uploadPhoto(photoFile, `events/${asset.id}`);
+        photoUrl = await uploadPhoto(photoFile);
         setUploading(false);
       }
-      
+
       // Criar evento no Supabase
       await createEvent({
         asset_id: asset.id,
@@ -118,7 +118,7 @@ export default function QuickEvent() {
   return (
     <Layout>
       <div className="max-w-md mx-auto min-h-[80vh] flex flex-col justify-center">
-        
+
         {/* Header */}
         <div className="mb-6 flex items-center gap-4">
           <Link href="/assets/TOR-001">
@@ -157,17 +157,16 @@ export default function QuickEvent() {
               </IndustrialCardHeader>
               <IndustrialCardContent>
                 <label className="block">
-                  <input 
-                    type="file" 
-                    accept="image/*" 
+                  <input
+                    type="file"
+                    accept="image/*"
                     capture="environment"
                     onChange={handlePhotoChange}
                     className="hidden"
                   />
-                  <div 
-                    className={`aspect-video border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${
-                      photoTaken ? "border-green-500 bg-green-500/5" : "border-border hover:border-primary hover:bg-accent/5"
-                    }`}
+                  <div
+                    className={`aspect-video border-2 border-dashed flex flex-col items-center justify-center cursor-pointer transition-colors ${photoTaken ? "border-green-500 bg-green-500/5" : "border-border hover:border-primary hover:bg-accent/5"
+                      }`}
                   >
                     {photoTaken ? (
                       <>
@@ -183,17 +182,17 @@ export default function QuickEvent() {
                     )}
                   </div>
                 </label>
-                
+
                 <div className="mt-4 relative">
                   <div className="flex justify-between items-center mb-2">
                     <label className="text-xs font-mono text-muted-foreground uppercase block">Observação (Opcional)</label>
                     {isStandardizing && (
-                        <span className="text-xs font-mono text-blue-500 flex items-center gap-1 animate-pulse">
-                            <Sparkles className="h-3 w-3" /> Padronizando...
-                        </span>
+                      <span className="text-xs font-mono text-blue-500 flex items-center gap-1 animate-pulse">
+                        <Sparkles className="h-3 w-3" /> Padronizando...
+                      </span>
                     )}
                   </div>
-                  <textarea 
+                  <textarea
                     value={observation}
                     onChange={handleObservationChange}
                     onBlur={handleBlur}
@@ -207,8 +206,8 @@ export default function QuickEvent() {
               </IndustrialCardContent>
             </IndustrialCard>
 
-            <IndustrialButton 
-              className="w-full h-14 text-lg" 
+            <IndustrialButton
+              className="w-full h-14 text-lg"
               onClick={handleSave}
               disabled={saving}
             >

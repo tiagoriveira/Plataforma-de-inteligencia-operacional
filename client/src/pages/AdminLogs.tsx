@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase';
 
 interface AuditLog {
   id: string;
@@ -26,31 +27,25 @@ export default function AdminLogs() {
 
   async function loadLogs() {
     try {
-      // Buscar logs de auditoria do Supabase
-      // Por enquanto, mostrar logs demo
-      setLogs([
-        {
-          id: '1',
-          user_email: 'tiagosantosr59@gmail.com',
-          action: 'LOGIN',
-          details: 'Login via PIN',
-          created_at: new Date().toISOString()
-        },
-        {
-          id: '2',
-          user_email: 'tiagosantosr59@gmail.com',
-          action: 'CREATE_ASSET',
-          details: 'Criou ativo: Torno CNC #001',
-          created_at: new Date(Date.now() - 3600000).toISOString()
-        },
-        {
-          id: '3',
-          user_email: 'tiagosantosr59@gmail.com',
-          action: 'CREATE_EVENT',
-          details: 'Registrou manutenção preventiva',
-          created_at: new Date(Date.now() - 7200000).toISOString()
-        }
-      ]);
+      const { data, error } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(100);
+
+      if (error) throw error;
+
+      // Buscar emails dos usuários para exibir
+      const { data: usersData } = await supabase.rpc('get_all_users');
+      const userMap = new Map(usersData?.map((u: any) => [u.id, u.email]));
+
+      setLogs(data.map((log: any) => ({
+        id: log.id,
+        user_email: (userMap.get(log.user_id) as string) || 'Sistema',
+        action: log.action,
+        details: log.metadata ? JSON.stringify(log.metadata) : '',
+        created_at: log.created_at
+      })));
     } catch (error) {
       console.error('Erro ao carregar logs:', error);
       toast.error('Erro ao carregar logs');

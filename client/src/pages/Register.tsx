@@ -14,6 +14,8 @@ export default function Register() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [pin, setPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -29,10 +31,20 @@ export default function Register() {
       return;
     }
 
+    if (pin.length !== 4 || isNaN(Number(pin))) {
+      toast.error('O PIN deve ter 4 dígitos numéricos');
+      return;
+    }
+
+    if (pin !== confirmPin) {
+      toast.error('Os PINs não coincidem');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await signUp(email, password);
+      await signUp(email, password, pin);
       toast.success('Conta criada! Verifique seu email para confirmar.');
       setLocation('/login');
     } catch (error: any) {
@@ -97,6 +109,35 @@ export default function Register() {
               required
               disabled={loading}
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="pin">PIN (4 dígitos)</Label>
+              <Input
+                id="pin"
+                type="password"
+                placeholder="1234"
+                value={pin}
+                onChange={(e) => setPin(e.target.value)}
+                required
+                maxLength={4}
+                pattern="\d{4}"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmPin">Confirmar PIN</Label>
+              <Input
+                id="confirmPin"
+                type="password"
+                placeholder="1234"
+                value={confirmPin}
+                onChange={(e) => setConfirmPin(e.target.value)}
+                required
+                maxLength={4}
+                pattern="\d{4}"
+              />
+            </div>
           </div>
 
           <Button type="submit" className="w-full" disabled={loading}>

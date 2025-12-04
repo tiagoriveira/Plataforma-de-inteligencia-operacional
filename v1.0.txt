@@ -1,0 +1,1033 @@
+Documentação Técnica MVP
+ Sistema de Rastreamento Industrial via QR/NFC
+ Versão: 1.0 MVP
+ Data: Novembro 2025
+ Filosofia: KISS (Keep It Simple, Stupid) + Lean + Dados Primeiro
+ 1. VISÃO GERAL DO SISTEMA
+ 1.1 Objetivo
+ Criar uma máquina de captura e organização de dados operacionais através de etiquetas físicas com QR
+ codes. O sistema registra cada interação com ativos industriais (máquinas, ferramentas, EPIs) e constrói
+ histórico operacional que se torna ativo estratégico da empresa.
+ 1.2 Princípio Central
+ Etiqueta = Sensor de Dados
+ Cada escaneamento gera um evento. Cada evento alimenta o histórico. O histórico vira inteligência
+ operacional.
+ 1.3 Não-Objetivos do MVP
+ ❌
+ Automações
+ ❌
+ Inteligência Artificial
+ ❌
+ Dashboards complexos
+ ❌
+ Integrações externas
+ ❌
+ App mobile nativo
+ ❌
+ Sistema de usuários complexo
+ 2. ARQUITETURA TÉCNICA
+ 2.1 Stack Tecnológica
+ Frontend:
+ PWA (Progressive Web App) responsivo
+ 1/25
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+Framework: React.js
+ Hospedagem: Vercel ou Netlify
+ Backend:
+ Supabase (Backend-as-a-Service)
+ PostgreSQL (banco de dados)
+ REST API automática
+ Storage para fotos
+ Auth para admin
+ Acesso:
+ Token único por ativo (sem login para operadores)
+ URL pública: 
+https://app.com/a/{token}
+ 2.2 Fluxo de Dados Simplificado
+ Etiqueta Física (QR)
+ Etiqueta Física (QR)
+ ↓
+ ↓
+ URL + Token
+ URL + Token
+ ↓
+ ↓
+ Ficha do Ativo (Web)
+ Ficha do Ativo (Web)
+ ↓
+ ↓
+ Registro de Ação
+ Registro de Ação
+ ↓
+ ↓
+ Banco de Dados
+ Banco de Dados
+ ↓
+ ↓
+ Histórico Permanente
+ Histórico Permanente
+ 3. MODELO DE DADOS
+ 3.1 Tabela: 
+companies
+ Clientes que usam o sistema.
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 2/25
+Campo
+ id
+ Tipo Descrição
+ uuid (PK)
+ Identificador único
+ name
+ text
+ Nome da empresa
+ created_at
+ timestamp
+ Data de cadastro
+ Regras:
+ Criado manualmente (admin)
+ Um registro por cliente
+ 3.2 Tabela: 
+assets
+ Ativos físicos rastreados.
+ Campo
+ id
+ Tipo Descrição
+ uuid (PK)
+ Identificador único
+ company_id
+ uuid (FK)
+ Empresa proprietária
+ asset_code
+ text (único)
+ asset_type
+ text
+ name
+ text
+ location
+ text
+ photo_url
+ access_token
+ created_at
+ text (nullable)
+ Código legível (ex: MAR-2025-001)
+ Tipo (máquina, ferramenta, EPI)
+ Nome descritivo
+ Localização física
+ URL da foto
+ text (único, indexado)
+ Token para acesso via QR
+ timestamp
+ Data de criação
+ Regras:
+ asset_code gerado automaticamente: 
+SIGLA-ANO-SEQUENCIAL
+ access_token gerado automaticamente (UUID)
+ Token nunca expira (simplicidade operacional)
+ Um ativo = um QR = um token
+ 3.3 Tabela: 
+events
+ Histórico de ações nos ativos.
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 3/25
+Campo
+ id
+ Tipo Descrição
+ uuid (PK)
+ Identificador único
+ asset_id
+ uuid (FK)
+ Ativo relacionado
+ event_type
+ text
+ Tipo de evento
+ description
+ text (nullable)
+ Descrição da ação
+ photo_url
+ text (nullable)
+ Foto da ação
+ operator_name
+ text (nullable)
+ Nome do operador
+ created_at
+ timestamp
+ Data/hora do evento
+ Regras:
+ Cada registro de ação = 1 evento
+ event_type exemplos: "manutenção", "inspeção", "check-out", "check-in"
+ Timestamp gerado automaticamente pelo sistema
+ Foto opcional (Supabase Storage)
+ 3.4 Tabela: 
+maintenance_checklists
+ Templates de checklist reutilizáveis.
+ Campo
+ id
+ Tipo Descrição
+ uuid (PK)
+ company_id
+ uuid (FK)
+ name
+ text
+ items
+ created_at
+ Identificador único
+ jsonb
+ Empresa proprietária
+ Nome do checklist
+ Array de itens (strings)
+ timestamp
+ Data de criação
+ Regras:
+ items armazena JSON: 
+["Verificar óleo", "Testar pressão"]
+ Criado manualmente (admin ou cliente)
+ Reutilizável entre múltiplos ativos
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 4/25
+3.5 Tabela: 
+checklist_executions
+ Execuções de checklists.
+ Campo
+ id
+ Tipo Descrição
+ uuid (PK)
+ Identificador único
+ asset_id
+ uuid (FK)
+ checklist_id
+ uuid (FK)
+ responses
+ jsonb
+ operator_name
+ photo_url
+ created_at
+ Ativo relacionado
+ text (nullable)
+ Checklist usado
+ Respostas dos itens
+ Nome do operador
+ text (nullable)
+ Foto da execução
+ timestamp
+ Data/hora da execução
+ Regras:
+ responses exemplo: 
+[{"item": "Verificar óleo", "ok": true}]
+ Foto única para toda execução (não por item)
+ Não obrigatório responder todos os itens (flexibilidade)
+ 4. FLUXOS OPERACIONAIS
+ 4.1 Cadastro de Ativo (Admin)
+ Etapas:
+ 1. Admin acessa painel web autenticado
+ 2. Preenche formulário:
+ Nome do ativo
+ Tipo (dropdown)
+ Localização
+ Upload de foto (opcional)
+ 3. Sistema gera automaticamente:
+ asset_code (ex: MAR-2025-001)
+ access_token (UUID aleatório)
+ 4. Sistema gera URL pública: 
+https://app.com/a/{access_token}
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 5/25
+5. Sistema exibe QR code para download/impressão
+ 6. Admin baixa PNG do QR
+ 7. Admin imprime e aplica na etiqueta física
+ Regras de Negócio:
+ Código sequencial por empresa
+ Token único, nunca expira
+ QR aponta para URL pública
+ Etiqueta física é responsabilidade do admin
+ Tempo esperado: 2 minutos por ativo
+ 4.2 Acesso via QR (Operador)
+ Etapas:
+ 1. Operador escaneia QR com câmera do smartphone
+ 2. Navegador abre URL: 
+https://app.com/a/{token}
+ 3. Sistema busca ativo na tabela 
+assets por 
+4. Se encontrado: exibe ficha do ativo
+ 5. Se não encontrado: exibe erro 404
+ Regras de Negócio:
+ Sem login ou autenticação
+ Acesso totalmente público via token
+ Token é a única chave de segurança
+ access_token
+ Funciona em qualquer navegador moderno
+ Tempo esperado: 3 segundos
+ 4.3 Visualizar Ficha do Ativo
+ Interface exibe:
+ Nome do ativo
+ 6/25
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+Tipo
+ Localização atual
+ Foto (se cadastrada)
+ Último evento registrado:
+ Data/hora
+ Tipo de evento
+ Operador (se informado)
+ Botões disponíveis:
+ "Registrar Ação"
+ "Ver Histórico Completo"
+ "Fazer Checklist"
+ Regras de Negócio:
+ Exibir apenas dados essenciais
+ Último evento = mais recente por 
+Layout responsivo (mobile-first)
+ created_at DESC LIMIT 1
+ 4.4 Registrar Ação (Core do MVP)
+ Etapas:
+ 1. Operador clica "Registrar Ação"
+ 2. Formulário simples:
+ Tipo de ação (dropdown obrigatório):
+ Manutenção
+ Inspeção
+ Check-out
+ Check-in
+ Outro
+ Descrição (texto curto, opcional, max 200 chars)
+ 7/25
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+Foto (upload, opcional)
+ Seu nome (texto, opcional)
+ 3. Operador clica "Salvar"
+ 4. Sistema valida campos obrigatórios
+ 5. Sistema faz upload da foto (se houver) para Supabase Storage
+ 6. Sistema cria registro na tabela 
+events :
+ asset_id = ID do ativo atual
+ event_type = tipo selecionado
+ description = texto informado
+ photo_url = URL da foto (se houver)
+ operator_name = nome informado
+ created_at = timestamp atual (automático)
+ 7. Sistema exibe confirmação: "✓ Ação registrada com sucesso"
+ 8. Sistema retorna para ficha do ativo
+ Regras de Negócio:
+ Campo obrigatório: apenas 
+event_type
+ Timestamp gerado automaticamente pelo banco
+ Foto: max 5MB, formatos: JPG, PNG
+ Descrição: sem validação complexa
+ Tempo total do fluxo: <10 segundos
+ Validações:
+ javascript
+ 8/25
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+// Validação mínima no frontend
+ // Validação mínima no frontend
+ if  ( (! !event_type
+ if
+ return  erro
+ event_type) )  { {
+ return
+ erro( ("Tipo de ação é obrigatório"
+ "Tipo de ação é obrigatório") ); ;
+ }
+ }
+ if
+ if  ( (photo 
+photo &&
+ return
+ && photo
+ photo. .size
+ return  erro
+ size  > >  5 5  * *  1024
+ 1024  * *  1024
+ 1024) )  { {
+ erro( ("Foto muito grande (max 5MB)"
+ "Foto muito grande (max 5MB)") ); ;
+ }
+ }
+ 4.5 Ver Histórico
+ Etapas:
+ 1. Operador clica "Ver Histórico Completo"
+ 2. Sistema busca todos eventos do ativo:
+ Query: 
+SELECT * FROM events WHERE asset_id = ? ORDER BY created_at DESC
+ 3. Sistema exibe lista cronológica reversa:
+ Data/hora formatada
+ Tipo de evento (badge colorido)
+ Descrição (se houver)
+ Operador (se informado)
+ Foto (miniatura clicável)
+ Regras de Negócio:
+ Ordenação: mais recente primeiro
+ Paginação simples: 50 eventos iniciais
+ Foto: miniatura 80x80px, clique abre em tamanho real
+ Sem edição ou exclusão de eventos (imutabilidade)
+ 4.6 Executar Checklist
+ Etapas:
+ 1. Operador clica "Fazer Checklist"
+ 2. Sistema busca checklists disponíveis:
+ 9/25
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+Query: 
+SELECT * FROM maintenance_checklists WHERE company_id = ?
+ 3. Sistema exibe lista de checklists (se houver)
+ 4. Operador seleciona um checklist
+ 5. Sistema exibe formulário com itens:
+ Cada item tem checkbox "OK / Não OK"
+ 6. Operador marca cada item
+ 7. Operador adiciona (opcional):
+ Foto geral
+ Seu nome
+ 8. Operador clica "Enviar"
+ 9. Sistema valida que ao menos 1 item foi marcado
+ 10. Sistema salva em 
+checklist_executions :
+ responses = array JSON com resultados
+ 11. Sistema confirma: "✓ Checklist concluído"
+ Regras de Negócio:
+ Respostas armazenadas em JSON
+ Não obrigatório preencher todos os itens
+ Foto única para toda execução (não por item)
+ Nome do operador opcional
+ Exemplo de JSON armazenado:
+ json
+ {
+ {
+ "responses"
+ {"item"
+ "responses": :  [ [
+ {
+ "item": :  "Verificar óleo"
+ {"item"
+ {
+ {
+ "Verificar óleo", ,  "ok"
+ "item": :  "Testar pressão"
+ "ok": :  true
+ true} }, ,
+ "Testar pressão", ,  "ok"
+ "ok": :  false
+ false} }, ,
+ {"item"
+ "item": :  "Limpar filtros"
+ "Limpar filtros", ,  "ok"
+ ]
+ ]
+ }
+ }
+ "ok": :  true
+ true} }
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 10/25
+5. ENDPOINTS DA API (Supabase REST)
+ Supabase gera automaticamente REST API para todas as tabelas. Principais endpoints:
+ 5.1 Buscar Ativo por Token
+ GET /rest/v1/assets?access_token=eq.{token}&select=*
+ GET /rest/v1/assets?access_token=eq.{token}&select=*
+ Uso: Fluxo de acesso via QR
+ Retorno: Objeto com dados do ativo ou array vazio
+ 5.2 Criar Evento
+ POST /rest/v1/events
+ POST /rest/v1/events
+ Content-Type: application/json
+ Content-Type: application/json
+ {
+ {
+ }
+ }
+ "asset_id": "uuid",
+ "asset_id": "uuid",
+ "event_type": "manutenção",
+ "event_type": "manutenção",
+ "description": "Troca de óleo hidráulico",
+ "description": "Troca de óleo hidráulico",
+ "operator_name": "João Silva",
+ "operator_name": "João Silva",
+ "photo_url": "https://..."
+ "photo_url": "https://..."
+ Uso: Registrar ação
+ 5.3 Listar Eventos de um Ativo
+ GET /rest/v1/events?asset_id=eq.{uuid}&order=created_at.desc
+ GET /rest/v1/events?asset_id=eq.{uuid}&order=created_at.desc
+ Uso: Ver histórico
+ 5.4 Listar Checklists
+ GET /rest/v1/maintenance_checklists?company_id=eq.{uuid}
+ GET /rest/v1/maintenance_checklists?company_id=eq.{uuid}
+ Uso: Carregar checklists disponíveis
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 11/25
+5.5 Criar Execução de Checklist
+ POST /rest/v1/checklist_executions
+ POST /rest/v1/checklist_executions
+ Content-Type: application/json
+ Content-Type: application/json
+ {
+ {
+ }
+ }
+ "asset_id": "uuid",
+ "asset_id": "uuid",
+ "checklist_id": "uuid",
+ "checklist_id": "uuid",
+ "responses": [...],
+ "responses": [...],
+ "operator_name": "João Silva",
+ "operator_name": "João Silva",
+ "photo_url": "https://..."
+ "photo_url": "https://..."
+ Uso: Salvar checklist preenchido
+ 5.6 Upload de Foto
+ POST /storage/v1/object/photos/{filename}
+ POST /storage/v1/object/photos/{filename}
+ Content-Type: image/jpeg
+ Content-Type: image/jpeg
+ Body: [binary data]
+ Body: [binary data]
+ Uso: Upload de imagens
+ Retorno: URL pública da foto
+ 6. SEGURANÇA (Row Level Security - RLS)
+ 6.1 Política para 
+assets
+ Leitura pública: permitida via 
+access_token (sem autenticação)
+ Escrita: apenas admin autenticado (Supabase Auth)
+ 6.2 Política para 
+events
+ Leitura pública: qualquer pessoa com token do ativo pode ver histórico
+ Escrita pública: qualquer pessoa pode registrar evento (sem auth)
+ 6.3 Política para 
+checklist_executions
+ Leitura pública: por 
+asset_id
+ Escrita pública: sem restrições
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 12/25
+6.4 Política para 
+companies e 
+maintenance_checklists
+ Leitura/Escrita: apenas admin autenticado
+ Justificativa da segurança "frouxa":
+ Token do ativo já é a chave de acesso
+ Simplicidade operacional > segurança complexa
+ Dados não são sensíveis (manutenção industrial)
+ Se token vazar, pode-se gerar novo
+ 7. GERAÇÃO DE QR CODE
+ 7.1 Solução Recomendada
+ Usar biblioteca JavaScript no painel admin:
+ Biblioteca: 
+qrcode.react ou 
+qrcode
+ Código exemplo:
+ javascript
+ import
+ import  QRCode
+ QRCode  from
+ <QRCode
+ <
+  value
+ QRCode  
+  value=
+ from  'qrcode.react'
+ 'qrcode.react'; ;
+ ={ {` `https://app.com/a/
+ https://app.com/a/${
+ ${asset
+ asset. .access_token
+  size=
+  size
+  level
+ ={ {256
+ 256} }
+  level=
+ ="H"
+ "H"
+ /
+ /> >
+ access_token} }` `} }
+ 7.2 Alternativa (API Externa)
+ https://api.qrserver.com/v1/create-qr-code/
+ https://api.qrserver.com/v1/create-qr-code/
+ ?size=256x256
+ ?size=256x256
+ &data=https://app.com/a/{token}
+ &data=https://app.com/a/{token}
+ Resultado: PNG para download/impressão
+ 8. INTERFACE DO MVP (PÁGINAS)
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 13/25
+8.1 Página Admin (autenticada)
+ URL: 
+/admin
+ Funcionalidades:
+ Listar ativos da empresa (tabela simples)
+ Botão "Cadastrar Novo Ativo"
+ Formulário de cadastro (modal ou página)
+ Exibir QR code gerado
+ Botão para baixar PNG do QR
+ Autenticação: Supabase Auth (email + senha)
+ 8.2 Página Pública do Ativo (via QR)
+ URL: 
+/a/{token}
+ Layout:
+ Card com foto do ativo
+ Informações essenciais
+ 3 botões principais:
+ "Registrar Ação" (primário)
+ "Ver Histórico"
+ "Fazer Checklist"
+ Design: Mobile-first, botões grandes, sem menu
+ 8.3 Página de Registro de Ação
+ URL: 
+/a/{token}/register
+ Elementos:
+ Dropdown de tipo
+ Textarea de descrição
+ Upload de foto (arrastar ou selecionar)
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 14/25
+Input de nome
+ Botão "Salvar"
+ Validação: Frontend + backend
+ 8.4 Página de Histórico
+ URL: 
+/a/{token}/history
+ Layout:
+ Lista cronológica de cards
+ Cada card mostra:
+ Data/hora
+ Badge de tipo
+ Descrição
+ Nome do operador
+ Miniatura de foto
+ Ordenação: Mais recente primeiro
+ 8.5 Página de Checklist
+ URL: 
+/a/{token}/checklist
+ Fluxo:
+ Tela 1: Seleção de checklist
+ Tela 2: Formulário de execução
+ Tela 3: Confirmação
+ 9. ESPECIFICAÇÕES TÉCNICAS
+ 9.1 Performance
+ Tempo de carregamento inicial: <2s
+ Tempo de registro de ação: <10s (incluindo upload de foto)
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 15/25
+Suporte a modo offline básico (PWA cache)
+ 9.2 Compatibilidade
+ Navegadores modernos (últimas 2 versões):
+ Chrome/Edge (Android/Windows)
+ Safari (iOS)
+ Firefox
+ Resolução mínima: 360x640px (smartphones)
+ 9.3 Armazenamento de Fotos
+ Max 5MB por foto
+ Formatos: JPEG, PNG
+ Compressão automática no frontend
+ Supabase Storage (bucket público)
+ 9.4 Banco de Dados
+ PostgreSQL 14+ (Supabase)
+ Índices obrigatórios:
+ assets.access_token (UNIQUE, BTREE)
+ events.asset_id (BTREE)
+ events.created_at (BTREE)
+ 10. ROADMAP DE DESENVOLVIMENTO
+ 10.1 MVP (15 dias úteis)
+ Semana 1 (Dias 1-5):
+ Setup Supabase (projeto + tabelas)
+ Configurar RLS
+ Criar página admin (cadastro de ativo)
+ Implementar geração de QR code
+ Semana 2 (Dias 6-10):
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 16/25
+Página pública do ativo
+ Registro de ação (formulário + API)
+ Upload de fotos (Supabase Storage)
+ Histórico de eventos
+ Semana 3 (Dias 11-15):
+ Checklist (templates + execução)
+ PWA setup (manifest + service worker)
+ Deploy (Vercel/Netlify)
+ Testes internos
+ 10.2 V1.1 (pós-MVP, +10 dias)
+ Funcionalidades:
+ Alertas de manutenção vencida (baseado em data)
+ Relatório simples: eventos por período (PDF básico)
+ Busca de ativos no painel admin
+ 10.3 V1.2 (pós-V1.1, +15 dias)
+ Funcionalidades:
+ Análise de padrões (frequência de manutenção)
+ Sugestões baseadas em histórico
+ Comparações básicas entre ativos
+ 11. CRITÉRIOS DE ACEITAÇÃO DO MVP
+ O MVP está completo quando:
+ ✅
+ Admin consegue cadastrar ativo em <2 minutos
+ ✅
+ QR gerado aponta para URL funcional
+ ✅
+ Operador consegue acessar ficha via QR
+ ✅
+ Operador consegue registrar ação em <10 segundos
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 17/25
+✅
+ Histórico exibe todos eventos corretamente
+ ✅
+ Checklist funciona de ponta a ponta
+ ✅
+ Fotos são armazenadas e exibidas
+ ✅
+ Sistema funciona em smartphone Android/iOS
+ ✅
+ PWA instalável no celular
+ ✅
+ Zero bugs críticos
+ 12. LIMITAÇÕES CONHECIDAS DO MVP
+ O MVP NÃO possui:
+ Sistema de notificações
+ Relatórios avançados
+ Exportação de dados
+ Integração com ERP
+ Multi-idiomas
+ Edição de eventos passados
+ Exclusão de ativos
+ Controle de permissões granular
+ Auditoria de mudanças
+ Backup automático (Supabase faz)
+ Estas limitações são intencionais para manter simplicidade.
+ 13. MÉTRICAS DE SUCESSO
+ KPIs técnicos:
+ Uptime: >99%
+ Tempo médio de registro: <10s
+ Taxa de erro em upload: <1%
+ KPIs de produto:
+ Eventos registrados por ativo/mês: >20
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 18/25
+Tempo médio de onboarding: <30 min
+ Taxa de uso após 30 dias: >70%
+ 14. STACK DE FERRAMENTAS DE DESENVOLVIMENTO
+ Essenciais:
+ Editor: VS Code
+ Controle de versão: Git + GitHub
+ Banco: Supabase Dashboard
+ Design: Figma (wireframes básicos)
+ Teste: Chrome DevTools + dispositivos reais
+ Bibliotecas React:
+ react-router-dom (navegação)
+ qrcode.react (geração de QR)
+ react-dropzone (upload de arquivos)
+ date-fns (manipulação de datas)
+ CSS:
+ Tailwind CSS (utilidades)
+ 15. INSTRUÇÕES PARA O DESENVOLVEDOR
+ 15.1 Setup Inicial
+ 1. Criar projeto React:
+ bash
+   npx create-react-app asset-tracker
+   npx create-react-app asset-tracker
+ cd
+ cd asset-tracker
+ asset-tracker
+ 2. Instalar dependências:
+ bash
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 19/25
+3. Configurar Supabase:
+ Criar projeto em supabase.com
+ Copiar URL e anon key
+ Criar arquivo .env:
+ 4. Criar tabelas (SQL no Supabase):
+ 5. Configurar RLS:
+ 15.2 Estrutura de Pastas Sugerida
+      npmnpm  install install @supabase/supabase-js react-router-dom qrcode.react react-dropzone date-fns @supabase/supabase-js react-router-dom qrcode.react react-dropzone date-fns
+          REACT_APP_SUPABASE_URL=https://xxx.supabase.co REACT_APP_SUPABASE_URL=https://xxx.supabase.co
+          REACT_APP_SUPABASE_ANON_KEY=xxx REACT_APP_SUPABASE_ANON_KEY=xxx
+ sql
+      -- Ver seção 3 deste documento-- Ver seção 3 deste documento
+ sql
+      -- Ver seção 6 deste documento-- Ver seção 6 deste documento
+ src/ src/
+ ├── components/ ├── components/
+ │   ├── AssetCard.js │   ├── AssetCard.js
+ │   ├── EventList.js │   ├── EventList.js
+ │   ├── ChecklistForm.js │   ├── ChecklistForm.js
+ │   └── QRCodeDisplay.js │   └── QRCodeDisplay.js
+ ├── pages/ ├── pages/
+ │   ├── Admin.js │   ├── Admin.js
+ │   ├── AssetPublic.js │   ├── AssetPublic.js
+ │   ├── RegisterAction.js │   ├── RegisterAction.js
+ │   ├── History.js │   ├── History.js
+ │   └── Checklist.js │   └── Checklist.js
+ ├── services/ ├── services/
+ │   └── supabase.js │   └── supabase.js
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47 20/25
+├── App.js
+ ├── App.js
+ └── index.js
+ └── index.js
+ 15.3 Exemplo de Código: Cliente Supabase
+ javascript
+ // src/services/supabase.js
+ import
+ // src/services/supabase.js
+ import  { { createClient 
+ createClient } }  from
+ const supabaseUrl 
+const
+ const
+ from  '@supabase/supabase-js'
+ '@supabase/supabase-js'; ;
+ supabaseUrl = = process
+ process. .env
+ env. .REACT_APP_SUPABASE_URL
+ const supabaseKey 
+ supabaseKey = = process
+ process. .env
+ export
+ export  const
+ REACT_APP_SUPABASE_URL; ;
+ env. .REACT_APP_SUPABASE_ANON_KEY
+ REACT_APP_SUPABASE_ANON_KEY; ;
+ const supabase 
+ supabase =
+ =  createClient
+ createClient( (supabaseUrl
+ supabaseUrl, , supabaseKey
+ 15.4 Exemplo: Buscar Ativo por Token
+ javascript
+ // src/services/assets.js
+ import
+ // src/services/assets.js
+ import  { { supabase 
+ supabase } }  from
+ from  './supabase'
+ export
+ const
+ export  async
+ async  function
+ './supabase'; ;
+ function  getAssetByToken
+ getAssetByToken( (token
+ const  { { data
+ data, , error 
+ error }
+ .
+ .
+ .from
+ from( ('assets'
+ 'assets') )
+ .select
+ select( ('*'
+ '*') )
+ .
+ .
+ .eq
+ }  = =  await
+ await supabase
+ supabase
+ eq( ('access_token'
+ 'access_token', , token
+ token) )
+ .single
+ single( () ); ;
+ if  ( (error
+ if
+ return
+ error) )  throw
+ throw error
+ return data
+ data; ;
+ }
+ }
+ error; ;
+ supabaseKey) ); ;
+ token) )  { {
+ 15.5 Exemplo: Criar Evento
+ javascript
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 21/25
+// src/services/events.js
+ import
+ // src/services/events.js
+ import  { { supabase 
+ supabase } }  from
+ from  './supabase'
+ export
+ const
+ export  async
+ async  function
+ './supabase'; ;
+ function  createEvent
+ createEvent( (eventData
+ eventData) )  { {
+ const  { { data
+ data, , error 
+ error }
+ .
+ .
+ .from
+ from( ('events'
+ 'events') )
+ .insert
+ }  = =  await
+ await supabase
+ supabase
+ insert( ([ [eventData
+ eventData] ]) )
+ .select
+ .
+ .single
+ select( () )
+ .
+ single( () ); ;
+ if  ( (error
+ if
+ return
+ error) )  throw
+ throw error
+ error; ;
+ return data
+ data; ;
+ }
+ }
+ 15.6 Exemplo: Upload de Foto
+ javascript
+ // src/services/storage.js
+ import
+ // src/services/storage.js
+ import  { { supabase 
+ supabase } }  from
+ export
+ const
+ export  async
+ from  './supabase'
+ async  function
+ './supabase'; ;
+ function  uploadPhoto
+ uploadPhoto( (file
+ file) )  {
+ const filename 
+ filename =
+ =  ` `${
+ ${Date
+ Date. .now
+ now( () )} }_
+ _${
+ {
+ ${file
+ file. .name
+ name} }` `; ;
+ const
+ .
+ const  { { data
+ data, , error 
+.from
+ error }
+ }  = =  await
+ await supabase
+ from( ('photos'
+ .
+ 'photos') )
+ .upload
+ upload( (filename
+ filename, , file
+ if
+ if  ( (error
+ error) )  throw
+ file) ); ;
+ throw error
+ error; ;
+ const
+ .
+ const  { {  data
+ data: :  { { publicUrl 
+ supabase. .storage
+ storage
+ publicUrl } }  } }  =
+ .from
+ from( ('photos'
+ .
+ 'photos') )
+ .getPublicUrl
+ getPublicUrl( (filename
+ return
+ filename) ); ;
+ return publicUrl
+ }
+ }
+ = supabase
+ publicUrl; ;
+ supabase. .storage
+ storage
+ 16. CHECKLIST DE QA (GARANTIA DE QUALIDADE)
+ Antes de considerar MVP pronto:
+ Funcionalidade:
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 22/25
+Admin consegue criar ativo
+ QR é gerado corretamente
+ QR abre página do ativo
+ Dados do ativo são exibidos
+ Formulário de ação funciona
+ Foto é carregada e salva
+ Evento aparece no histórico
+ Histórico mostra todos eventos
+ Checklist pode ser executado
+ Checklist salva respostas
+ Usabilidade:
+ Interface é clara em smartphone
+ Botões têm tamanho adequado (min 44x44px)
+ Textos são legíveis
+ Feedback visual ao salvar
+ Mensagens de erro são claras
+ Tempo de registro é <10s
+ Performance:
+ Página carrega em <2s
+ Upload de foto <5s
+ Sem travamentos
+ Compatibilidade:
+ Funciona em Chrome Android
+ Funciona em Safari iOS
+ PWA instalável
+ Segurança:
+ Token é único
+ RLS configurado
+ Fotos em bucket público
+ Sem dados sensíveis expostos
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 23/25
+17. GLOSSÁRIO TÉCNICO
+ PWA (Progressive Web App): Aplicação web que funciona como app nativo (instalável, offline parcial)
+ Supabase: Plataforma backend que fornece banco PostgreSQL + API + autenticação
+ RLS (Row Level Security): Sistema de permissões a nível de linha no banco de dados
+ Token: Código único alfanumérico usado para autenticação via URL
+ QR Code: Código de barras 2D que armazena URL
+ UUID: Identificador único universal (formato: 
+550e8400-e29b-41d4-a716-446655440000 )
+ JSONB: Tipo de dados PostgreSQL para armazenar JSON de forma eficiente
+ REST API: Interface de comunicação entre frontend e backend via HTTP
+ FK (Foreign Key): Chave estrangeira que relaciona tabelas
+ PK (Primary Key): Chave primária que identifica unicamente um registro
+ 18. SUPORTE E MANUTENÇÃO
+ Monitoramento básico:
+ Uptime: StatusCake ou UptimeRobot (gratuito)
+ Erros: Sentry (plano gratuito)
+ Analytics: Google Analytics 4
+ Backup:
+ Supabase faz backup automático
+ Exportação manual semanal recomendada
+ Atualizações:
+ Supabase atualiza automaticamente
+ Frontend: deploy manual via Vercel
+ 19. CONTATO E PRÓXIMOS PASSOS
+ Dúvidas técnicas:
+ https://claude.ai/chat/dc117cc2-ce5d-4bb1-8551-3c0077a9ba47
+ 24/25
+Documentação Supabase: docs.supabase.com
+ Documentação React: react.dev
+ Após completar MVP:
+ 1. Testar internamente por 7 dias
+ 2. Coletar feedback de 3 usuários reais
+ 3. Iterar problemas críticos
+ 4. Planejar V1.1
+ FIM DA DOCUMENTAÇÃO TÉCNICA MVP
+ Este documento é vivo e deve ser atualizado conforme necessário. Versão atual: 1.0 MVP.

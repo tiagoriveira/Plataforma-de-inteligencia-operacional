@@ -28,6 +28,7 @@ export default function Home() {
     totalAtivos: 0,
     ativosNegligenciados: 0,
     ativosNegligenciadosList: [] as any[],
+    distribuicaoEventos: [] as any[],
   });
   const [loading, setLoading] = useState(true);
 
@@ -42,6 +43,7 @@ export default function Home() {
           totalAtivos: data.totalAtivos,
           ativosNegligenciados: data.ativosNegligenciados,
           ativosNegligenciadosList: data.ativosNegligenciadosList,
+          distribuicaoEventos: data.distribuicaoEventos,
         });
       } catch (error) {
         console.error("Erro ao carregar KPIs:", error);
@@ -68,13 +70,7 @@ export default function Home() {
     );
   }
 
-  const distribuicaoEventos = [
-    { tipo: "Manutenção", count: 120, cor: "bg-yellow-500" },
-    { tipo: "Inspeção", count: 98, cor: "bg-blue-500" },
-    { tipo: "Check-in", count: 65, cor: "bg-green-500" },
-    { tipo: "Problema", count: 42, cor: "bg-red-500" },
-    { tipo: "Melhoria", count: 17, cor: "bg-purple-500" },
-  ];
+  const distribuicaoEventos = kpis.distribuicaoEventos;
 
   return (
     <Layout>
@@ -94,7 +90,7 @@ export default function Home() {
           <h2 className="text-lg font-bold font-mono text-foreground uppercase mb-3 flex items-center gap-2">
             <span className="text-primary">▸</span> O QUE VOCÊ QUER FAZER?
           </h2>
-          
+
           <div className="grid grid-cols-2 gap-3">
             {/* Escanear Ativo */}
             <Link href="/scan">
@@ -171,7 +167,7 @@ export default function Home() {
           <h2 className="text-lg md:text-xl font-bold font-mono text-foreground uppercase mb-3 flex items-center gap-2">
             <span className="text-primary">▸</span> RESUMO DO MÊS
           </h2>
-          
+
           <div className="grid grid-cols-3 gap-2 md:gap-4 mb-4">
             {/* KPI 1: Total de Eventos */}
             <IndustrialCard className="bg-gradient-to-br from-blue-500/5 to-blue-500/10 border-blue-500/20">
@@ -232,7 +228,7 @@ export default function Home() {
                           <span className="text-muted-foreground">{evento.count} ({percentual}%)</span>
                         </div>
                         <div className="w-full bg-muted rounded-full h-2">
-                          <div 
+                          <div
                             className={`${evento.cor} h-2 rounded-full transition-all`}
                             style={{ width: `${percentual}%` }}
                           />
@@ -252,7 +248,7 @@ export default function Home() {
                 </h3>
                 <div className="space-y-3">
                   {kpis.ativosNegligenciadosList.map((ativo: any) => (
-                    <div 
+                    <div
                       key={ativo.id}
                       className="flex items-center justify-between p-3 rounded-lg border border-red-500/20 bg-red-500/5"
                     >
@@ -277,7 +273,7 @@ export default function Home() {
           <h2 className="text-xl font-bold font-mono text-foreground uppercase mb-4 flex items-center gap-2">
             <span className="text-primary">▸</span> ACESSO RÁPIDO
           </h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {/* Escanear Ativo */}
             <Link href="/scan">
@@ -390,7 +386,7 @@ export default function Home() {
               SOBRE O SISTEMA
             </h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Sistema de rastreamento industrial via QR/NFC. Cada escaneamento gera um registro. 
+              Sistema de rastreamento industrial via QR/NFC. Cada escaneamento gera um registro.
               Cada registro alimenta o histórico. O histórico vira inteligência operacional.
             </p>
           </div>

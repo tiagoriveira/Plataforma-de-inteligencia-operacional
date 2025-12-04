@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { IndustrialButton } from "@/components/ui/industrial-button";
 import { IndustrialCard } from "@/components/ui/industrial-card";
@@ -8,15 +8,23 @@ import { toast } from "sonner";
 
 export default function PinLogin() {
   const [, setLocation] = useLocation();
-  const { signInWithPin } = useAuth();
+  const { user, isLocked, verifyPin } = useAuth();
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!user) {
+      setLocation("/login");
+    } else if (!isLocked) {
+      setLocation("/");
+    }
+  }, [user, isLocked, setLocation]);
 
   const handleNumberClick = (num: string) => {
     if (pin.length < 4) {
       const newPin = pin + num;
       setPin(newPin);
-      
+
       // Auto-login quando completar 4 dígitos
       if (newPin.length === 4) {
         handleLogin(newPin);
@@ -31,11 +39,11 @@ export default function PinLogin() {
   const handleLogin = async (pinToUse: string) => {
     setLoading(true);
     try {
-      await signInWithPin(pinToUse);
+      await verifyPin(pinToUse);
       toast.success("Acesso autorizado!");
       setLocation("/");
     } catch (error: any) {
-      toast.error("PIN inválido", {
+      toast.error("PIN incorreto", {
         description: "Verifique seu PIN e tente novamente.",
       });
       setPin("");
@@ -44,6 +52,14 @@ export default function PinLogin() {
   };
 
   const numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
+
+  if (!user || !isLocked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -66,11 +82,10 @@ export default function PinLogin() {
             {[0, 1, 2, 3].map((i) => (
               <div
                 key={i}
-                className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center ${
-                  pin.length > i
-                    ? "border-primary bg-primary/10"
-                    : "border-border"
-                }`}
+                className={`w-12 h-12 rounded-lg border-2 flex items-center justify-center ${pin.length > i
+                  ? "border-primary bg-primary/10"
+                  : "border-border"
+                  }`}
               >
                 {pin.length > i && (
                   <div className="w-3 h-3 rounded-full bg-primary" />

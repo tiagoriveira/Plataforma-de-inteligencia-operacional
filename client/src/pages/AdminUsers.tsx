@@ -32,15 +32,16 @@ export default function AdminUsers() {
 
   async function loadUsers() {
     try {
-      // Buscar usuários do Supabase Auth (requer permissões admin)
-      // Por enquanto, mostrar usuário demo
-      setUsers([{
-        id: '1',
-        email: 'tiagosantosr59@gmail.com',
-        created_at: new Date().toISOString(),
-        pin: '1234',
-        is_active: true
-      }]);
+      const { data, error } = await supabase.rpc('get_all_users');
+      if (error) throw error;
+
+      setUsers(data.map((u: any) => ({
+        id: u.id,
+        email: u.email,
+        created_at: u.created_at,
+        pin: u.metadata?.pin,
+        is_active: !u.metadata?.banned_until // Assuming we check ban status or similar
+      })));
     } catch (error) {
       console.error('Erro ao carregar usuários:', error);
       toast.error('Erro ao carregar usuários');
@@ -51,14 +52,12 @@ export default function AdminUsers() {
 
   async function handleCreateUser() {
     try {
-      // Criar usuário no Supabase Auth
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            pin: formData.pin
-          }
+      const { error } = await supabase.functions.invoke('admin-actions', {
+        body: {
+          action: 'createUser',
+          email: formData.email,
+          password: formData.password,
+          metadata: { pin: formData.pin }
         }
       });
 
@@ -76,7 +75,14 @@ export default function AdminUsers() {
 
   async function handleUpdatePin(userId: string, newPin: string) {
     try {
-      // Atualizar PIN do usuário
+      const { error } = await supabase.functions.invoke('admin-actions', {
+        body: {
+          action: 'updateUser',
+          id: userId,
+          metadata: { pin: newPin }
+        }
+      });
+      if (error) throw error;
       toast.success('PIN atualizado com sucesso!');
       loadUsers();
     } catch (error) {
@@ -87,7 +93,11 @@ export default function AdminUsers() {
 
   async function handleToggleActive(userId: string, isActive: boolean) {
     try {
-      // Ativar/desativar usuário
+      const action = isActive ? 'restoreUser' : 'deleteUser';
+      const { error } = await supabase.functions.invoke('admin-actions', {
+        body: { action, id: userId }
+      });
+      if (error) throw error;
       toast.success(isActive ? 'Usuário ativado!' : 'Usuário desativado!');
       loadUsers();
     } catch (error) {

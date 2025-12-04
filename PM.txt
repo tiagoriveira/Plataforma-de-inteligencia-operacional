@@ -1,0 +1,928 @@
+SISTEMAS INDUSTRIAIS
+ PLANEJAMENTO
+ ESTRATÉGICO
+ DE PRODUTO
+ VERSÃO
+ 2.0 (Consolidada)
+ DATA
+ 28 de Novembro de 2025
+ FILOSOFIA
+ KISS + Dados >
+ Features + Zero
+ Perfumaria
+STATUS ATUAL
+ MVP
+ Funcional
+ Hoje
+ 4.5 LTV/CAC (SAUDÁVEL)
+ O Que Está Pronto
+ STACK TECNOLÓGICO FUNCIONALIDADES CORE
+ 6 telas + 1 modal funcionais
+ ■
+ PWA dark mode minimalista
+ ■
+ Registro via QR < 10s
+ ■
+ Backend: Supabase
+ ■
+ Frontend: React
+ ■
+ Hosting: Vercel
+ ■
+ Acesso público via token único
+ ■
+ Cadastro de ativos (admin)
+ ■
+ Geração automática de QR codes
+ ■
+ 5 tipos de eventos (manutenção, etc)
+ ■
+ Histórico cronológico imutável
+ ■
+ Checklists executáveis
+ ■
+ Upload de fotos (max 5MB)
+ ■
+DADOS CAPTURADOS
+ ESTRUTURA DE COLETA
+ CAMPO TIPO OBRIGATÓRIO
+ Timestamp AUTOMÁTICO
+ 
+ Sim
+ Tipo de evento DROPDOWN
+ 
+ Sim
+ Operador TEXTO
+ 
+ Opcional
+ Descrição TEXTO (200 CHARS)
+ 
+ Opcional
+ Foto UPLOAD (5MB)
+ 
+ Opcional
+ Localização do ativo AUTOMÁTICA
+ 
+ Sim
+ Código único do ativo AUTOMÁTICO
+ 
+ Sim
+O QUE FALTA CONCLUIR
+ PRÓXIMAS PRIORIDADES
+ 
+ Foco Imediato: Estabilização do MVP + Aquisição de 15-20 clientes para validar uso real.
+ TÉCNICO (GATILHOS)
+ >Monitorar performance Supabase Free Tier
+ >Garantir tempos de resposta: < 3s ficha, < 10s registro
+ UPGRADE SUPABASE PRO ($25/MÊS) SE:
+ > 15 clientes ativos
+ >20.000 eventos registrados
+ >500 fotos armazenadas
+ Estratégia Técnica:
+ O foco não é adicionar funcionalidades, mas garantir que a base suporte o
+ crescimento inicial sem falhas.
+VISÃO DO PRODUTO
+ O QUE O SISTEMA É
+ MEMÓRIA OPERACIONAL
+ PERMANENTE
+ Sistema de rastreamento que atua como camada de coleta de dados factuais.
+ Transforma ativos físicos em fontes de dados estruturados.
+ 
+ SENSOR DE DADOS
+ Captura contínua de eventos
+ operacionais diretamente da fonte.
+ 
+ BASE FACTUAL
+ Fundamento para processos de
+ melhoria (TPM, Lean, Kaizen).
+ 
+ EVIDÊNCIAS
+ Rastreabilidade total para auditoria e
+ compliance.
+"
+ LIMITES CLAROS
+ O QUE
+ NÃO É
+ × CMMS
+ Não gerenciamos ordens de serviço
+ × ERP
+ Não controlamos estoque, compras, produção
+ × Planejamento de Manutenção
+ Não agendamos o futuro
+ × Gestão de Tarefas
+ Não somos um gerenciador de projetos
+ REGRA DE OURO
+ Registramos o que
+ FOI feito.
+ Não gerenciamos o
+ que SERÁ feito.
+5 PILARES DA FILOSOFIA
+ PRINCÍPIOS IMUTÁVEIS
+ KISS (KEEP IT SIMPLE)
+ 01
+ Operador completa tarefa em < 10s ›
+ Máximo 1 campo obrigatório ›
+ Zero login para operadores ›
+ Zero features decorativas ›
+ DADOS COMO CORE
+ 02
+ Produto = dados + insights ›
+ Feature deve fortalecer captura ›
+ Sem dados = rejeitada ›
+ ZERO PERFUMARIA
+ 03
+ Funcionalidades cosméticas rejeitadas ›
+ Foco absoluto na função ›
+ Valor mensurável ou não entra ›
+ IMUTABILIDADE
+ 04
+ Eventos nunca editados/deletados ›
+ Integridade total para auditoria ›
+ Erro = novo evento explicando ›
+ VERTICAL-FIRST
+ 05
+ Dominar 100% de um nicho ›
+ Não atender "qualquer indústria" ›
+ Especialização > generalização ›
+V1.1 BETA PROGRAM
+ ROADMAP 30 DIAS
+ OBJETIVO: Validar com 3 clientes selecionados (1 power user, 1 médio, 1 novo)
+ 1. Alertas Simples por Data 5 DIAS DEV 2. Campo "Instruções" 2 DIAS DEV
+ 3. Tipo "Não Conforme" 1 DIA DEV 4. Export CSV Básico 3 DIAS DEV
+ 5. Campo "Marca/Modelo" 0.5 DIA DEV 6. Tipo "Melhoria" 0.5 DIA DEV
+ ESTIMATIVA TOTAL DE DESENVOLVIMENTO 12 Dias Úteis
+ Notificação email/WhatsApp quando manutenção vence •
+ Admin define prazo (ex: "a cada 90 dias") •
+ Sistema envia alerta 7 dias antes •
+ Admin adiciona 3-5 bullet points •
+ Operador vê ao escanear QR •
+ Reduz erros operacionais •
+ Nova opção no dropdown de ações •
+ Foto obrigatória quando selecionado •
+ Para documentar problemas/riscos •
+ Botão no painel admin para baixar histórico •
+ Campos: asset_code, event_type, timestamp, etc. •
+ Permite análise comparativa futura •
+ Fortalece Gestão Antecipada (TPM Pilar 6) •
+ Rastreia ROI de Kaizens •
+ Fortalece Melhoria Específica (TPM Pilar 3) •
+MITIGAÇÃO DE RISCOS
+ RISCOS 30 DIAS
+ RISCO MITIGAÇÃO
+ Baixa adoção Onboarding 15min + acompanhamento semanal
+ Feedback negativo Entrevistas qualitativas na Semana 4
+ Bugs críticos Monitoring intensivo (Sentry + testes manuais)
+ DEPENDÊNCIAS CRITÉRIOS DE SUCESSO
+ Engajamento dos 3 clientes beta (colaboração ativa)
+ →
+ Estabilidade Supabase Free Tier (monitoramento)
+ →
+ Dev disponível para 40h em 30 dias
+ →
+ ≥
+ 2 clientes reportam melhoria na rotina ✓
+ Zero bugs críticos ✓
+ NPS >70 ✓
+ Eventos/ativo/semana mantém >3 ✓
+V1.2 - EXPANSÕES MÍNIMAS
+ ROADMAP 90 DIAS
+ OBJETIVO: Começar a entregar inteligência básica
+ ESTIMATIVA TOTAL DE DESENVOLVIMENTO 14 Dias Úteis
+ 1. Dashboard Minimalista (3 KPIs) 4 DIAS DEV
+ Total de eventos no mês ›
+ Ativos com uso saudável (>3 eventos/mês) ›
+ Ativos negligenciados (>30 dias sem uso) ›
+ 2. Filtros Simples no Histórico 2 DIAS DEV
+ Dropdown: Todos / Manutenção / Inspeção / Não Conformidades ›
+ Por período: últimos 7/30/90 dias ›
+ 3. Relatório PDF Automático 6 DIAS DEV
+ Email mensal automático com resumo executivo ›
+ Top 5 ativos mais usados & Alertas de negligência ›
+ Aumenta percepção de valor ›
+ 4. Templates de Checklist 2 DIAS DEV
+ 3-5 templates pré-configurados (5S, Segurança) ›
+ Acelera onboarding ›
+ Fortalece Segurança (TPM Pilar 5) ›
+SUPORTE A ESCALA
+ INFRAESTRUTURA
+ Plano de Migração
+ 
+ ↓
+ Otimizações Técnicas
+ 
+ CREATE INDEX idx_events_asset_date
+ ON events(asset_id, created_at DESC);
+ GATILHOS (FREE TIER LIMIT)
+ 
+ 30-40 Clientes 
+ 50k Eventos 
+ 5GB Storage
+ UPGRADE PARA PRO ($25/MÊS)
+ ✓
+ Até 100 Clientes ✓
+ 200k Eventos ✓
+ 20GB Storage
+ Índices Compostos
+ Acelera consultas de histórico por ativo.
+ Cache no Dashboard
+ Reduz carga no banco para KPIs frequentes.
+ Paginação Cursor-based
+ Performance constante independente do tamanho da base.
+ESTRUTURA OPERACIONAL
+ TIME E CUSTOS
+ TIME MÍNIMO
+  Founder (Você)
+ 70% do tempo (Gestão, Vendas, Suporte)
+  Dev Freelancer
+ 20h/mês (Manutenção e Features pontuais)
+  Instalador
+ Terceirizado sob demanda
+  Suporte
+ Via WhatsApp (SLA 4h)
+ CUSTOS MENSAIS (90 DIAS)
+ Infraestrutura (Supabase) R$ 125
+ Desenvolvimento (Manutenção) R$ 2.000
+ Operação (Materiais) R$ 1.000
+ TOTAL MENSAL R$ 3.100
+ PONTO DE EQUILÍBRIO (BREAKEVEN)
+ 11 Clientes × R$ 300/mês
+ESTRATÉGIA DE LANÇAMENTO
+ ROLLOUT GRADUAL V1.2
+ FASE 1 (1 SEMANA)
+ 10% Monitoramento
+ Validar performance em produção
+ controlada.
+ FASE 2 (1 SEMANA)
+ 30% Feedback
+ Coletar impressões iniciais e ajustar
+ arestas.
+ FASE 3 (FINAL)
+ 100% Lançamento Total
+ Comunicação massiva + Tutorial de 3min.
+ ⚠
+ PROTOCOLO DE SEGURANÇA (CRITÉRIOS DE ROLLBACK)
+ Error Rate > 5%
+ ROLLBACK IMEDIATO
+ Query Time > 2s
+ INVESTIGAR ANTES DE EXPANDIR
+ Reclamações > 10%
+ PAUSAR ROLLOUT
+ 〉
+ 〉
+8 PILARES VS SISTEMA
+ ALINHAMENTO COM TPM
+ PILAR TPM ALINHAMENTO COMO O SISTEMA AJUDA
+ 1. Manutenção Autônoma ✅ FORTE Operador registra limpeza/inspeção; frequência visível.
+ 2. Manutenção Planejada ✅ FORTE Comprova execução preventivas; histórico de conformidade.
+ 3. Melhoria Específica ✅ FORTE Fornece dados de falhas para análise Kaizen.
+ 4. Educação e Treinamento ⚡ MÉDIO Instruções via QR; erros operacionais documentados.
+ 5. Segurança (SHE) ⚡✅ MÉDIO-FORTE Registra riscos; não conformidades com foto.
+ 6. Gestão Antecipada ⚡ MÉDIO Banco de lições aprendidas; dados para compra futura.
+ 7. Manutenção da Qualidade ⚡✅ MÉDIO-FORTE Checklists de conformidade; desvios rastreados.
+ 8. Suporte à Manufatura ✅ FORTE Rastreabilidade completa; ativos negligenciados visíveis.
+ Conclusão: Sistema atual já suporta 6 dos 8 pilares de forma forte ou médio-forte.
+O QUE FAZ SENTIDO IMPLEMENTAR
+ MICRO-FEATURES ALINHADAS
+ Campo "Marca/Modelo"
+ V1.1
+ PILAR TPM
+ Gestão Antecipada (6)
+ COMPLEXIDADE
+ Mínima
+ VALOR GERADO
+ Análise comparativa de desempenho
+ Tipo "Melhoria"
+ V1.1
+ PILAR TPM
+ Melhoria Específica (3)
+ COMPLEXIDADE
+ Mínima
+ VALOR GERADO
+ ROI de Kaizens mensurável
+ Templates Checklist
+ V1.2
+ PILAR TPM
+ Segurança (5) + Autônoma (1)
+ COMPLEXIDADE
+ Baixa
+ VALOR GERADO
+ Acelera adoção e onboarding
+ Tipo "Inspeção de Segurança"
+ V1.2 (OPCIONAL)
+ PILAR TPM
+ Segurança (5)
+ COMPLEXIDADE
+ Mínima
+ VALOR GERADO
+ Facilita auditorias específicas
+REJEIÇÕES DEFINITIVAS
+ O QUE NÃO IMPLEMENTAR
+ × Calendário de Manutenção
+ Vira CMMS, foge do escopo.
+ × Ordens de Serviço
+ Planejamento futuro não é nosso foco.
+ × Workflow de Aprovação
+ Mata a velocidade de registro.
+ × Integração com ERP
+ Prematura, complexidade alta, ROI incerto.
+ × Módulo E-learning
+ Mercado diferente, fora do core.
+ × Telemetria IoT
+ Prematura, hardware é outro negócio.
+ × Gráficos Complexos
+ Polui interface, 90% não usa.
+ × Sistema de Certificações
+ Foge do princípio KISS.
+ × Custo por Evento
+ Adiciona fricção operacional desnecessária.
+ × Parâmetros Numéricos
+ Temp/Pressão: esperar IoT em V3+.
+ FOCO ABSOLUTO NA FUNÇÃO • ZERO PERFUMARIA
+CRESCIMENTO SEM COMPLEXIDADE
+ ARQUITETURA EM CAMADAS
+ PRINCÍPIO FUNDAMENTAL
+ Crescimento em profundidade
+ de dados,
+ não em largura de features.
+ 
+ REGRA DE INDEPENDÊNCIA
+ Se a Camada N falhar, as Camadas 1 a N-1 continuam
+ funcionando perfeitamente. CAPTURA 01
+ MVP (QR + Registro)
+ ORGANIZAÇÃO 02
+ V1.1 (Alertas)
+ VISUALIZAÇÃO 03
+ V1.2 (Dashboard)
+ INTELIGÊNCIA BÁSICA 04
+ V2.0 (Padrões)
+ IA ESTRUTURAÇÃO 05
+ V2.0 (NLP)
+ IA PREDITIVA 06
+ V3.0+ (Previsão)
+FILTRO PARA NOVAS FEATURES
+ REGRA DE 3 PERGUNTAS
+ 1 Isso captura mais dados ou melhora a qualidade dos dados?
+ 2 5+ clientes pediram explicitamente?
+ 3 Pode ser implementado em < 1 semana?
+  CONCEITO DE NOVOS MÓDULOS
+ Novos "módulos" são apenas novas visualizações sobre dados existentes.
+ Ex: Heatmap de Problemas 
+≠
+ novo sistema. Heatmap = nova forma de ver a tabela events.
+ SE NÃO:
+ REJEITAR 
+
+ SE NÃO:
+ BACKLOG 
+
+ SE NÃO:
+ QUEBRAR OU REJEITAR
+ORDEM DE IMPLEMENTAÇÃO
+ CAMADAS DE IA
+ CAMADA 1 V2.0
+ IA de Estruturação
+ Padronização de descrições (NLP básico), detecção de duplicatas, validação de
+ consistência.
+ Por quê: Dados limpos = análises confiáveis (base para tudo).
+ CAMADA 2 V2.0
+ IA de Insights Simples
+ Estatísticas descritivas, identificação de outliers, correlações óbvias.
+ Por quê: Baixa complexidade, alto valor imediato.
+ CAMADA 3 V2.0
+ IA de Resumos
+ Resumo semanal automatizado, pontos de atenção, sugestões baseadas em regras.
+ Por quê: Reduz carga mental do gestor.
+ CAMADA 4 V2.5
+ IA de Assistência Contextual
+ Sugestão de categoria ao digitar, autocompletar descrições comuns.
+ Por quê: Produtividade incremental no registro.
+ CAMADA 5 V2.5
+ IA de Auditoria
+ Detectar ativos sem histórico há >X dias, identificar inconsistências.
+ Por quê: Útil com base grande de dados.
+ CAMADA 6 V3.0+
+ IA Preditiva
+ Previsão de falhas (Machine Learning), recomendações de manutenção.
+ Por quê: Exige anos de dados + validação rigorosa.
+REJEIÇÕES DE IA
+ O QUE NÃO IMPLEMENTAR
+ IA DEVE SER INVISÍVEL E UTILITÁRIA, NUNCA UM OBSTÁCULO.
+    
+    
+ CHATBOTS DE SUPORTE
+ O operador no chão de fábrica não quer
+ conversar com um robô. Ele quer resolver.
+ MOTIVO: SUPORTE DEVE SER HUMANO (WHATSAPP).
+ GERAÇÃO DE IMAGENS
+ Precisamos da realidade crua do problema, não
+ de uma representação artística.
+ MOTIVO: FOTO REAL > IMAGEM GERADA.
+ ANÁLISE DE SENTIMENTO
+ Relatórios de manutenção são técnicos e
+ objetivos. Emoção é ruído.
+ MOTIVO: IRRELEVANTE PARA DADOS TÉCNICOS.
+ VOICE-TO-TEXT CUSTOM
+ Não desenvolver engine própria. O ditado do
+ teclado do celular já resolve.
+ MOTIVO: NÃO REINVENTAR A RODA.
+EXECUÇÃO IMEDIATA
+ PRÓXIMAS AÇÕES (7 DIAS)
+ SELEÇÃO DE CLIENTES DIAS 1-2
+ Selecionar 6-8 clientes (Amostra Estatística).
+ Definir Plan B (Lista de reserva caso haja desistência).
+ ONBOARDING CONCIERGE DIAS 3-5
+ Configurar conta e ativos POR eles (Zero atrito).
+ Aplicar Script Padronizado (15 min cronometrados).
+ Imprimir e colar QR Codes fisicamente.
+ MONITORAMENTO INICIAL DIAS 6-7
+ Verificar banco de dados diariamente (registros reais?).
+ Check-in via WhatsApp: "Deu certo? Algum erro?"
+ 
+ PROIBIDO AGORA
+ Não tente automatizar o onboarding. Não crie
+ tutoriais em vídeo complexos. O contato humano
+ agora é a fonte de aprendizado.
+ Faça coisas que não
+ escalam.
+ PAUL GRAHAM
+ "
+OPERAÇÃO PADRONIZADA
+ SCRIPT DE ONBOARDING (15 MIN)
+ Min 00-03 CONTEXTUALIZAÇÃO
+ Explicar V1.1: Alertas, instruções básicas e o que fazer se algo der errado.
+ 
+ Min 03-06 DEMO AO VIVO
+ Você faz 1 registro real na frente do cliente para mostrar a simplicidade.
+ 
+ Min 06-10 PRÁTICA SUPERVISIONADA
+ O cliente faz 1 registro sozinho enquanto você observa (sem intervir, apenas guia).
+ 
+ Min 10-13 CONFIGURAÇÃO CONJUNTA
+ Configurar alertas de ociosidade e filtros iniciais juntos.
+ 
+PLANO DE EXECUÇÃO
+ 30 DIAS (V1.1)
+ 01 DESENVOLVIMENTO V1.1
+ Foco em Alertas de Ociosidade e Filtros Básicos.
+ Backend: Query de ociosidade (SQL)
+ 
+ Frontend: UI de Filtros
+ 
+ 02 TESTES & QUALIDADE
+ Garantir zero regressão (Zero Bugs P0/P1).
+ Testes de carga (simulação)
+ 
+ Correção de bugs visuais
+ 
+ 03 ROLLOUT CONTROLADO
+ Liberação para 6-8 clientes beta selecionados.
+ Deploy em produção
+ 
+ Comunicado via WhatsApp
+ 
+ 04 ANÁLISE & AJUSTES
+ Avaliar impacto com amostra estatística.
+ Entrevistas de feedback
+ 
+ Planejamento V1.2
+ 
+CONTROLE DE QUALIDADE
+ CLASSIFICAÇÃO DE BUGS
+ NÍVEL SEVERIDADE DEFINIÇÃO IMPACTO NO ROLLOUT
+ P0 Crítico Sistema inacessível, perda de dados ou registro impossível. BLOQUEIA TOTAL
+ P1 Alto Feature principal quebrada, mas existe workaround difícil. BLOQUEIA (Max 2*)
+ P2 Médio Feature secundária quebrada, workaround fácil disponível. NÃO BLOQUEIA
+ P3 Baixo Problema cosmético, erro de texto, não impacta uso. NÃO BLOQUEIA
+ 
+ CRITÉRIO DE GO-LIVE Zero P0 | Máximo 2 P1 (com workaround documentado)
+PLANO DE EXECUÇÃO
+ CRONOGRAMA 90 DIAS
+ FASE 1 Mês 1
+ Estabilização & Rollout V1.1
+ •Expandir para6-8 clientes beta.
+ •Coletar feedback qualitativo semanal.
+ •Monitoramento intensivo de erros
+ (Sentry).
+ •Ajustes finos de UX no registro.
+ MILESTONE 
+ 8 Clientes Ativos
+ FASE 2 Mês 2
+ Desenvolvimento V1.2
+ (Intelligence)
+ •Dashboard: 3 KPIs
+ +
+ Gráfico
+ Tendência
+ .
+ •PDF: Resumo +1 Insight Automático.
+ •Dev Intensivo:Orçamento R$ 5-8k.
+ •Testes internos (Staging).
+ MILESTONE 
+ V1.2 Pronta
+ FASE 3 Mês 3
+ Lançamento V1.2 & Expansão
+ •Rollout se 
+≥
+ 4 de 6-8 clientes
+ aprovarem.
+ •Ativação de emails automáticos.
+ •Criação de Templates de Checklist.
+ •Aquisição de +10 clientes (Total 20).
+ MILESTONE 
+ V1.2 Live + 20 Clientes
+KPIS E METAS
+ MÉTRICAS DE SUCESSO
+ ⭐
+ NORTH STAR METRIC
+ Registros Válidos por Ativo Ativo /
+ Semana
+ Mede o hábito de uso real e a geração de dados
+ úteis. Se este número sobe, o produto está gerando
+ valor.
+ MÉTRICA 30 DIAS
+ (VALIDAÇÃO)
+ 90 DIAS
+ (RETENÇÃO)
+ 180 DIAS
+ (ESCALA)
+ Clientes Ativos 6 - 8
+ Amostra Confiável
+ 15 - 20
+ Early Adopters
+ 50+
+ Mercado Aberto
+ Churn Rate 0%
+ Hand-holding total
+ < 5%
+ Ajuste de PMF
+ < 10%
+ Churn Natural
+ Validação de Valor
+ ≥4 de 6-8
+ Reportam melhoria
+ NPS > 60
+ Zona de Qualidade
+ NPS > 75
+ Zona de Excelência
+INDICADORES QUALITATIVOS
+ SINAIS DE SUCESSO
+ CURTO PRAZO
+ 1 a 3 Meses
+ FOCO:
+ Adoção e Usabilidade. O sistema não atrapalha.
+ MÉDIO PRAZO
+ 3 a 6 Meses
+ FOCO:
+ Percepção de Valor. O sistema traz insights.
+  LONGO PRAZO
+ 6 a 12 Meses
+ FOCO:
+ Dependência Estratégica. O sistema é essencial.
+ Operadores pedem para usar o
+ sistema (não é imposição do chefe).
+ •
+ Zero reclamações sobre "sistema
+ lento" ou "travando".
+ •
+ Primeiros registros espontâneos (fora
+ da rotina obrigatória).
+ •
+ Gerente descobre um problema
+ crônico apenas olhando o dashboard.
+ •
+ Cliente pede para expandir para outra
+ área ou filial.
+ •
+ Relatos anedóticos de redução no
+ tempo de parada.
+ •
+ Sistema vira "fonte da verdade" para
+ auditorias e reuniões.
+ •
+ Manutenção preventiva passa a ser
+ guiada pelos dados históricos.
+ •
+ Churn abaixo de 5%. •
+GESTÃO DE RISCOS
+ MONITORAMENTO CONTÍNUO
+ TIPO RISCO POTENCIAL SINAL DE ALERTA (KPI) AÇÃO IMEDIATA (PROTOCOLO)
+ 
+ Churn por Inércia < 3 eventos / semana Contato proativo de CS para re-treinamento
+ ou entender bloqueio.
+ 
+ Gargalo de Performance Query Time > 2s
+ Otimização de índices SQL e revisão de
+ queries no Supabase.
+ 
+ Resistência Operacional Feedback "Muitos
+ cliques"
+ Revisão de UX in-loco para simplificar fluxo
+ de registro.
+ 
+ Baixa Qualidade de Dados Descrições < 5
+ caracteres
+ Implementar tags pré-definidas ou
+ autocomplete (V2.0).
+  FILOSOFIA DE MONITORAMENTO
+ Não esperamos o cliente reclamar. O sistema deve nos avisar antes que o problema se torne uma frustração.
+VISÃO DE LONGO PRAZO
+ LINHA DO TEMPO (12+ MESES)
+ MÊS 1-3 (ATUAL)
+ FUNDAÇÃO
+ "A Ferramenta"
+ Registro via QR Code
+Histórico Digital
+Checklists Básicos
+Foco: Hábito
+MÊS 3-6
+ GESTÃO
+ "O Gerente"
+ Dashboards de KPIs
+Relatórios PDF
+Alertas de Ociosidade
+Foco: Visibilidade
+MÊS 6-12
+ ESCALA
+ "O Analista"
+ IA de Estruturação
+API de Integração
+Multi-unidades
+Foco: Dados Limpos
+ANO 2+
+ FUTURO
+ "O Oráculo"
+ IA Preditiva Real
+Integração IoT
+Manutenção Prescritiva
+Foco: Antecipação
+VANTAGEM COMPETITIVA
+ MOAT (FOSSO DEFENSIVO)
+ CURTO PRAZO
+ SIMPLICIDADE RADICAL
+ Enquanto concorrentes vendem "naves
+ espaciais" complexas e caras, nós
+ entregamos um "martelo" indestrutível e
+ óbvio.
+ DIFERENCIAL
+ Zero Treinamento
+  MÉDIO PRAZO
+ PROFUNDIDADE DE
+ DADOS
+ Acúmulo de histórico granular e
+ estruturado que planilhas e CMMS
+ genéricos não conseguem capturar com
+ consistência.
+ DIFERENCIAL
+ Histórico Confiável
+  LONGO PRAZO
+ INTELIGÊNCIA
+ PROPRIETÁRIA
+ Modelos de IA treinados em dados reais
+ de chão de fábrica que ninguém mais
+ tem acesso, gerando previsões
+ precisas.
+ DIFERENCIAL
+ Efeito de Rede de Dados
+ 
+FILOSOFIA CENTRAL
+ PRINCÍPIO INEGOCIÁVEL
+ "O sistema deve servir ao
+ chão de fábrica, não o
+ contrário."
+ Se uma feature exige que o operador trabalhe mais
+ apenas para alimentar o sistema, ela está errada.
+ ⚖
+ESTRATÉGIA FINANCEIRA
+ PLANO DE MONETIZAÇÃO
+ ENXUTO
+ Caixa > Crescimento
+ Sustentabilidade desde o dia 1.
+ Lucro > Receita
+ Margem é o que importa.
+ Simplicidade > Escala
+ Menos complexidade, mais vida.
+ Mentalidade: Lifestyle Business + Bootstrap. Zero investidor. Você manda.
+FUNDAMENTOS
+ 5 PRINCÍPIOS DE MONETIZAÇÃO
+ 01 BOOTSTRAPPING REAL
+ Crescimento financiado por lucro operacional. Sem dívida, sem investidor.
+ 02 LIFESTYLE BUSINESS
+ Meta: R$ 30-50k lucro/mês. Trabalho: 30-40h/semana. Equipe mínima.
+ 03 ALTO LUCRO > ALTO FATURAMENTO
+ Margem > 70% sempre. Rejeitar crescimento que corroa margem.
+ 04 KISS RADICAL
+ 1 produto, 3 tiers, 2 serviços. Nada de marketplace ou franquia.
+PRODUTO CORE (MRR)
+ ESTRUTURA DE TIERS
+ 70% DA BASE (PMES)
+ BÁSICO
+ R$ 300/mês
+ ✓
+ Sistema completo
+ ✓
+ Ativos ilimitados
+ ✓
+ Histórico permanente
+ ✓
+ Suporte WhatsApp (8h)
+ Entrada sem fricção.
+ 5% DA BASE (GRUPOS)
+ ENTERPRISE
+ R$ 1.200/mês
+ ✓
+ Tudo do Pro +
+ ✓
+ Gestão Multi-unidade
+ ✓
+ API de Integração
+ ✓
+ Consultoria (2h/mês)
+ ✓
+ Account Manager
+ Integração e visão global.
+ 25% DA BASE (MATURIDADE)
+ PRO
+ R$ 600/mês
+ ✓
+ Tudo do Básico +
+ ✓
+ Dashboard Avançado (8 KPIs)
+ ✓
+ Benchmarks Setoriais
+ ✓
+ Relatório PDF Automático
+ ✓
+ Alertas Multi-canal
+ 1 parada evitada paga o ano.
+SERVIÇOS (ALTO TICKET, BAIXA FRICÇÃO)
+ FONTES DE RECEITA EXTRA
+ IMPLEMENTAÇÃO R$ 12-18k
+ 
+ 1-2 por trimestre
+ 
+ Híbrido (2 dias on-site)
+ POR QUE LIMITAR?
+ Não escala (seu tempo físico). Mais que 2/trimestre vira consultoria
+ tradicional e mata o lifestyle.
+ AUDITORIA DE DADOS R$ 6-10k
+ 
+ 2-3 por trimestre
+ 
+ 100% Remoto
+ POR QUE FAZER?
+ Margem altíssima (custo = tempo). Usa dados que você já tem. Não
+ exige deslocamento.
+ Diagnóstico operacional completo. ›
+ Instalação física de 100-200 etiquetas. ›
+ Treinamento 3 níveis (operadores a gestores). ›
+ Definição de KPIs e metas. ›
+ Análise profunda de 6+ meses de dados. ›
+ Relatório executivo (15-20 pág) com padrões de falha. ›
+ Comparação com benchmark setorial. ›
+ Top 10 recomendações por ROI. ›
+SIMPLICIDADE > RECEITA
+ O QUE NÃO FAZER
+ 
+ MARKETPLACE
+ Margem baixa (5-10%). Reclamação de
+ fornecedor vira problema seu. Mata o lifestyle.
+ ALTERNATIVA
+ Indicar fornecedores de confiança sem comissão
+ (Goodwill).
+ 
+ REVENDA EQUIP.
+ Gestão de estoque, logística e suporte pós-venda.
+ Complexidade não compensa.
+ ALTERNATIVA
+ Cobrar etiquetas no preço da instalação.
+ 
+ FRANQUIA
+ Gestão de franqueados é um trabalho absurdo.
+ Conflitos e controle de qualidade constante.
+ ALTERNATIVA
+ Vender acesso ao software (fee simples) para
+ parceiros.
+ 
+ TREINAMENTO
+ Você vira palestrante com agenda cheia.
+ Consome dias de preparação e deslocamento.
+ ALTERNATIVA
+ Gravar 1 curso online e vender acesso (Renda
+ Passiva).
+ 
+ PROD. VERTICAIS
+ Fragmenta o desenvolvimento. Cada nicho exige
+ suporte e expertise específica.
+ ALTERNATIVA
+ Sistema genérico configurável + Consultoria se
+ necessário.
+ 
+ CERTIFICADOS
+ Risco legal e necessidade de validação
+ institucional constante.
+ ALTERNATIVA
+ "Relatório de Performance" (mesmo valor, sem
+ risco).
+VANTAGEM COMPETITIVA REAL
+ MONETIZAÇÃO DE DADOS (MOAT)
+ 
+ DADOS EXCLUSIVOS
+ Relatórios Setoriais Anuais
+ R$ 3.000 - R$ 5.000 / un
+ R$ 80k - 120k / ano
+ Receita extra com 2-3 semanas de trabalho concentrado.
+ O QUE É ENTREGUE:
+ 
+ PDF 30-40 páginas (Dados Agregados)
+ 
+ Benchmarks de falhas por ativo
+ 
+ Custo médio de manutenção setorial
+ 
+ Taxa de conformidade preventiva
+ QUEM COMPRA:
+ 
+ Seus Clientes (Benchmarking)
+ 
+ Fabricantes (Insights de Campo)
+PROJEÇÃO 24 MESES
+ MATEMÁTICA DO LIFESTYLE
+ META DE CLIENTES
+ 80 Clientes
+ 55 Básico | 20 Pro | 5 Enterprise
+ RECEITA MENSAL TOTAL
+ R$ 53.100
+ MRR (R$ 34.5k) + Serviços + Dados
+ LUCRO LÍQUIDO MENSAL
+ R$ 42.825 81% Margem
+ ~R$ 514.000 / ano no bolso
+ ESTRUTURA DE CUSTOS
+ Infra (Server/Domain) R$ 275
+ Dev Part-time R$ 3.000
+ Suporte WhatsApp R$ 2.500
+ Instalador Freelance R$ 1.500
+ Operacional (Mkt/Contab) R$ 3.000- R$ 10.275
+ROADMAP FINANCEIRO
+ TIMELINE DE EXECUÇÃO
+ ANO 1
+ Validação + Base (Meses 1-12)
+ ✓
+ Meta: 30-40 Clientes.
+ ✓
+ Foco: V1.1 e V1.2 (Alertas/Filtros).
+ ✓
+ Acumular dados para benchmarks.
+ ✓
+ Provar que o sistema funciona.
+ RECEITA MENSAL ESPERADA
+ R$ 13k - 16k
+ ANO 2
+ Crescimento + Moat (Meses 13-24)
+ ✓
+ Meta: 80 Clientes.
+ ✓
+ Lançar Tiers Pro e Enterprise.
+ ✓
+ Vender 1º Relatório Setorial.
+ ✓
+ Estabilizar operação (Lifestyle Mode).
+ RECEITA MENSAL ESPERADA
+ R$ 53.100
+VISÃO GERAL
+ RESUMO EXECUTIVO
+ 
+ STATUS ATUAL EM PROGRESSO
+ MVP (Captura) Validado.
+ O sistema básico de QR Code e registro de eventos já funciona e foi
+ testado tecnicamente.
+ V1.1 (Alertas) em Desenvolvimento.
+ Foco atual em transformar dados brutos em alertas de ociosidade
+ úteis.
+ 
+ PRÓXIMOS PASSOS (7 DIAS)
+ Selecionar 6-8 Clientes Beta (com Plan B). ›
+ Realizar Onboarding Concierge (Script 15 min). ›
+ Imprimir e instalar QR Codes fisicamente. ›
+ Monitorar primeiros registros diários. ›
+ 
+ META PRINCIPAL (30 DIAS)
+ Validar Hábito de Uso.
+ Não importa o número de cadastros, importa a frequência de uso.
+ North Star: >3 Registros Válidos por Ativo/Semana.
+ Churn Alvo: 0% (nesta fase inicial controlada).
+ 
+ DEFINIÇÃO DE VITÓRIA
+ ≥
+ 4 de 6-8 clientes reportam melhoria real. ›
+ Zero bugs críticos (P0). ›
+ Pelo menos 1 cliente relata ter descoberto um problema graças ao
+ sistema.
+ ›
+STATUS: VALIDADO
+ Pronto para
+ Execução
+ Simplicidade. Dados. Valor.
+ 
+ INÍCIO IMEDIATO
+ 
+ MVP EM 30 DIAS

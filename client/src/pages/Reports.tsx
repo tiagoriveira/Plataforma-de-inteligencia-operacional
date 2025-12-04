@@ -40,7 +40,7 @@ export default function Reports() {
       </Layout>
     );
   }
-  
+
   const reportData = {
     periodo: new Date().toLocaleDateString("pt-BR", { month: "long", year: "numeric" }),
     totalEventos: kpis.totalEventosAtual,
@@ -52,8 +52,8 @@ export default function Reports() {
       name: a.name,
       diasSemUso: a.diasSemUso
     })),
-    top5Ativos: [],
-    naoConformidades: [],
+    top5Ativos: kpis.top5Ativos || [],
+    naoConformidades: kpis.naoConformidades || [],
   };
 
   const variacao = ((reportData.totalEventos - reportData.totalEventosAnterior) / reportData.totalEventosAnterior * 100).toFixed(1);
@@ -71,20 +71,20 @@ export default function Reports() {
       scale: 2,
       backgroundColor: "#ffffff",
     });
-    
+
     const imgData = canvas.toDataURL("image/png");
     const pdf = new jsPDF("p", "mm", "a4");
     const pdfWidth = pdf.internal.pageSize.getWidth();
     const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-    
+
     // Se o conteúdo for maior que uma página, adicionar múltiplas páginas
     if (pdfHeight > pdf.internal.pageSize.getHeight()) {
       let heightLeft = pdfHeight;
       let position = 0;
-      
+
       pdf.addImage(imgData, "PNG", 0, position, pdfWidth, pdfHeight);
       heightLeft -= pdf.internal.pageSize.getHeight();
-      
+
       while (heightLeft >= 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
@@ -94,9 +94,9 @@ export default function Reports() {
     } else {
       pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
     }
-    
+
     pdf.save(`relatorio-mensal-${reportData.periodo.toLowerCase().replace(' ', '-')}.pdf`);
-    
+
     toast.success("Relatório gerado com sucesso!", {
       description: "O PDF foi baixado automaticamente.",
     });
@@ -115,7 +115,7 @@ export default function Reports() {
             RELATÓRIOS
           </h1>
         </div>
-        
+
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <p className="text-muted-foreground mt-1 font-mono text-sm">
@@ -146,7 +146,7 @@ export default function Reports() {
         {/* Preview do Relatório */}
         <div className="grid grid-cols-1 gap-6">
           <div id="report-content" className="bg-white border-2 border-border p-8 md:p-12 min-h-[800px] text-foreground">
-            
+
             {/* PÁGINA 1: RESUMO EXECUTIVO */}
             <div className="mb-12">
               {/* Header */}
@@ -241,7 +241,7 @@ export default function Reports() {
                 </h3>
                 <div className="space-y-3">
                   {reportData.ativosNegligenciados.map((ativo: any) => (
-                    <div 
+                    <div
                       key={ativo.id}
                       className="flex items-center justify-between p-4 rounded-lg border-2 border-red-500/20 bg-red-500/5"
                     >
@@ -297,7 +297,7 @@ export default function Reports() {
               <div className="mt-8 p-6 bg-gray-100 rounded-lg border-2 border-gray-300">
                 <h3 className="text-sm font-bold font-mono text-gray-800 mb-2 uppercase">Observação Automática</h3>
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  {parseFloat(variacao) > 0 
+                  {parseFloat(variacao) > 0
                     ? `Aumento de ${variacao}% nos eventos comparado ao mês anterior indica maior atividade operacional. Recomenda-se verificar se o aumento está relacionado a manutenções preventivas ou corretivas.`
                     : `Redução de ${Math.abs(parseFloat(variacao))}% nos eventos comparado ao mês anterior. Investigar se há ativos subutilizados ou se houve redução na demanda operacional.`
                   }
