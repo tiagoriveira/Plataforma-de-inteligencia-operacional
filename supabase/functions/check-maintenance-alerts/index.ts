@@ -24,6 +24,7 @@ serve(async (_req: any) => {
         if (settingsError) throw settingsError;
 
         const recipientEmails = alertSettings?.map(s => s.email) || ['tiagosantosr59@gmail.com'];
+        console.log(`[Alertas] ${recipientEmails.length} destinatários cadastrados`);
 
         // Buscar ativos que precisam de manutenção nos próximos 7 dias
         const { data: assets, error: assetsError } = await supabase
@@ -33,6 +34,7 @@ serve(async (_req: any) => {
             .not('last_maintenance_date', 'is', null);
 
         if (assetsError) throw assetsError;
+        console.log(`[Alertas] Verificando ${assets?.length || 0} ativos`);
 
         const alertsToSend = [];
 
@@ -75,6 +77,7 @@ serve(async (_req: any) => {
         }
 
         // Enviar emails para cada alerta
+        console.log(`[Alertas] ${alertsToSend.length} alertas para enviar`);
         const emailResults = [];
         for (const alert of alertsToSend) {
             const subject = alert.isOverdue
@@ -97,21 +100,19 @@ serve(async (_req: any) => {
                 message
             };
 
-            // Enviar para todos os destinatários cadastrados
-            for (const email of recipientEmails) {
-                try {
-                    const { data: emailResult } = await supabase.functions.invoke('send-email-notification', {
-                        body: {
-                            to: email,
-                            subject,
-                            type: 'MAINTENANCE_ALERT',
-                            data: emailData
-                        }
-                    });
-                    emailResults.push({ success: true, asset: alert.asset.code, email, emailResult });
-                } catch (emailError: any) {
-                    emailResults.push({ success: false, asset: alert.asset.code, email, error: emailError.message });
-                }
+            // Enviar para todos os destinatários de uma vez
+            try {
+                const { data: emailResult } = await supabase.functions.invoke('send-email-notification', {
+                    body: {
+                        to: recipientEmails, // Array de emails
+                        subject,
+                        type: 'MAINTENANCE_ALERT',
+                        data: emailData
+                    }
+                });
+                emailResults.push({ success: true, asset: alert.asset.code, recipients: recipientEmails.length, emailResult });
+            } catch (emailError: any) {
+                emailResults.push({ success: false, asset: alert.asset.code, error: emailError.message });
             }
 
             // Salvar no histórico de alertas

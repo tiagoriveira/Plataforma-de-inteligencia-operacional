@@ -35,6 +35,8 @@ export default function MaintenanceAlerts() {
   const [alerts, setAlerts] = useState<MaintenanceAlert[]>([]);
   const [settings, setSettings] = useState<AlertSettings[]>([]);
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const ITEMS_PER_PAGE = 50;
   const [newEmail, setNewEmail] = useState("");
   const [stats, setStats] = useState({
     total: 0,
@@ -63,7 +65,7 @@ export default function MaintenanceAlerts() {
         `)
         .gte('sent_at', thirtyDaysAgo.toISOString())
         .order('sent_at', { ascending: false })
-        .limit(100);
+        .range(page * ITEMS_PER_PAGE, (page + 1) * ITEMS_PER_PAGE - 1);
 
       if (alertsError) throw alertsError;
 
@@ -102,6 +104,12 @@ export default function MaintenanceAlerts() {
   async function addEmail() {
     if (!newEmail || !newEmail.includes('@')) {
       toast.error("Email inválido");
+      return;
+    }
+
+    // Validar duplicação antes de enviar
+    if (settings.some(s => s.email.toLowerCase() === newEmail.toLowerCase())) {
+      toast.error("Este email já está cadastrado");
       return;
     }
 
@@ -362,6 +370,28 @@ export default function MaintenanceAlerts() {
               <p className="text-gray-500 text-center py-8">Nenhum alerta enviado nos últimos 30 dias</p>
             )}
           </div>
+
+          {/* Paginação */}
+          {alerts.length === ITEMS_PER_PAGE && (
+            <div className="flex justify-center gap-2 mt-4">
+              <IndustrialButton
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(Math.max(0, page - 1))}
+                disabled={page === 0}
+              >
+                Anterior
+              </IndustrialButton>
+              <span className="text-gray-400 px-4 py-2">Página {page + 1}</span>
+              <IndustrialButton
+                variant="outline"
+                size="sm"
+                onClick={() => { setPage(page + 1); loadData(); }}
+              >
+                Próxima
+              </IndustrialButton>
+            </div>
+          )}
         </IndustrialCard>
       </div>
     </Layout>

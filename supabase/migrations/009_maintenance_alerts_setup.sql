@@ -101,3 +101,9 @@ CREATE TRIGGER update_alert_settings_updated_at_trigger
 INSERT INTO alert_settings (email, receive_maintenance_alerts, receive_monthly_reports)
 VALUES ('tiagosantosr59@gmail.com', true, true)
 ON CONFLICT (email) DO NOTHING;
+
+-- Índice composto para otimizar query de verificação de alertas
+CREATE INDEX IF NOT EXISTS idx_assets_maintenance_check 
+ON assets(last_maintenance_date, maintenance_interval_days)
+WHERE maintenance_interval_days IS NOT NULL 
+  AND last_maintenance_date IS NOT NULL;
