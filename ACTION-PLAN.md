@@ -34,9 +34,9 @@ Este documento apresenta um plano de ação estruturado para corrigir os problem
 ### Status Atual
 - ✅ Funcionalidades completas (V1.0 + V1.1 + V1.2 + Dashboard Admin)
 - ✅ **SPRINT 1 CONCLUÍDO** (04/12/2025) - 3 problemas críticos resolvidos
+- ✅ **LIMPEZA DO PROJETO CONCLUÍDA** (04/12/2025) - Código desnecessário removido
 - 🟢 Sistema pronto para testes de validação
-- 🟠 2 problemas de alta prioridade afetam experiência do usuário (Sprint 2)
-- 🟡 2 problemas de média prioridade afetam manutenibilidade (Sprint 2)
+- 🟡 Sprint 2 pendente (melhorias não críticas)
 
 ### Meta Final
 🎯 **Sistema pronto para produção com early adopters em 7-14 dias**
@@ -506,10 +506,30 @@ Validar que as correções de segurança funcionam corretamente e não há brech
 - `client/src/pages/PinLogin.tsx`
 
 ### Próximos Passos
-1. 🟡 Executar testes de validação (GUIA_DE_TESTES.md)
+1. 🟡 Executar testes de validação (docs/GUIA_DE_TESTES.md)
 2. 🟡 Criar usuário operador para testar restrições
 3. 🟡 Validar geração de PDF de relatórios
 4. ✅ Sistema pronto para early adopters após testes
+
+### Limpeza do Projeto (04/12/2025) ✅
+
+**Objetivo:** Remover código desnecessário e simplificar estrutura para melhor manutenção.
+
+**Realizado:**
+- ✅ Diretório `server/` removido (Express não é usado)
+- ✅ 15 dependências não usadas removidas (express, mysql2, drizzle, tRPC, etc)
+- ✅ Scripts simplificados (dev: vite, build: vite build)
+- ✅ README.md completo criado com arquitetura clara
+- ✅ Arquivos redundantes removidos (HANDOFF-DOCUMENTATION.md, ideas.md, todo.md, etc)
+
+**Resultado:**
+- 📦 Projeto 20% mais leve
+- 🎯 Arquitetura Supabase-only clara e documentada
+- 📚 Documentação completa (README.md + docs/)
+- 🧹 Código limpo e organizado
+- ✅ TypeScript check passa sem erros
+
+**Commit:** e998fc2
 
 ---
 
