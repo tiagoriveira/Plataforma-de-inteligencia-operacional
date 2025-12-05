@@ -1,225 +1,177 @@
-# Op.Intel - Plataforma de Inteligência Operacional
+# Supabase CLI
 
-Sistema de rastreamento e inteligência operacional para gestão de ativos industriais.
+[![Coverage Status](https://coveralls.io/repos/github/supabase/cli/badge.svg?branch=main)](https://coveralls.io/github/supabase/cli?branch=main) [![Bitbucket Pipelines](https://img.shields.io/bitbucket/pipelines/supabase-cli/setup-cli/master?style=flat-square&label=Bitbucket%20Canary)](https://bitbucket.org/supabase-cli/setup-cli/pipelines) [![Gitlab Pipeline Status](https://img.shields.io/gitlab/pipeline-status/sweatybridge%2Fsetup-cli?label=Gitlab%20Canary)
+](https://gitlab.com/sweatybridge/setup-cli/-/pipelines)
 
-## 🏗️ Arquitetura
+[Supabase](https://supabase.io) is an open source Firebase alternative. We're building the features of Firebase using enterprise-grade open source tools.
 
-**Frontend:** React 19 + TypeScript + Vite + TailwindCSS  
-**Backend:** Supabase (PostgreSQL + Auth + Storage + Edge Functions)  
-**Hospedagem:** Vercel (frontend) + Supabase (backend)
+This repository contains all the functionality for Supabase CLI.
 
-### ⚠️ Importante: Backend Exclusivamente Supabase
+- [x] Running Supabase locally
+- [x] Managing database migrations
+- [x] Creating and deploying Supabase Functions
+- [x] Generating types directly from your database schema
+- [x] Making authenticated HTTP requests to [Management API](https://supabase.com/docs/reference/api/introduction)
 
-Este projeto **NÃO utiliza servidor Node.js customizado**. Toda a lógica de backend é implementada através de:
+## Getting started
 
-- **Supabase Database (PostgreSQL):** Tabelas, views, índices
-- **Supabase Auth:** Autenticação e gerenciamento de usuários
-- **Supabase Storage:** Armazenamento de arquivos (fotos, PDFs)
-- **Supabase Edge Functions (Deno):** Lógica serverless
-- **Supabase RLS (Row Level Security):** Controle de acesso
+### Install the CLI
 
-## 🚀 Início Rápido
-
-### Pré-requisitos
-
-- Node.js 22+
-- pnpm 10+
-- Conta Supabase
-
-### Instalação
+Available via [NPM](https://www.npmjs.com) as dev dependency. To install:
 
 ```bash
-# Clonar repositório
-git clone https://github.com/tiagoriveira/Plataforma-de-inteligencia-operacional.git
-cd Plataforma-de-inteligencia-operacional
-
-# Instalar dependências
-pnpm install
-
-# Configurar variáveis de ambiente
-cp .env.example .env
-# Editar .env com suas credenciais Supabase
-
-# Iniciar servidor de desenvolvimento
-pnpm dev
+npm i supabase --save-dev
 ```
 
-### Variáveis de Ambiente
-
-```env
-VITE_SUPABASE_URL=https://seu-projeto.supabase.co
-VITE_SUPABASE_ANON_KEY=sua-anon-key
-VITE_SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
-```
-
-## 📁 Estrutura do Projeto
+When installing with yarn 4, you need to disable experimental fetch with the following nodejs config.
 
 ```
-Plataforma-de-inteligencia-operacional/
-├── client/                    # Frontend React
-│   ├── src/
-│   │   ├── components/       # Componentes reutilizáveis
-│   │   ├── contexts/         # Context API (Auth, etc)
-│   │   ├── lib/              # Utilitários e configurações
-│   │   ├── pages/            # Páginas da aplicação
-│   │   └── App.tsx           # Componente raiz
-│   └── index.html
-├── supabase/                  # Backend Supabase
-│   ├── functions/            # Edge Functions (Deno)
-│   └── migrations/           # Migrações SQL
-├── docs/                      # Documentação
-│   ├── GUIA_DE_TESTES.md
-│   ├── SPRINT1_REPORT.md
-│   └── RESUMO_EXECUTIVO.md
-├── ACTION-PLAN.md            # Plano de ação e roadmap
-├── AUDIT-REPORT.md           # Relatório de auditoria
-└── package.json
+NODE_OPTIONS=--no-experimental-fetch yarn add supabase
 ```
 
-## 🗄️ Banco de Dados
+> **Note**
+For Bun versions below v1.0.17, you must add `supabase` as a [trusted dependency](https://bun.sh/guides/install/trusted) before running `bun add -D supabase`.
 
-### Tabelas Principais
+<details>
+  <summary><b>macOS</b></summary>
 
-- **assets** - Ativos industriais cadastrados
-- **events** - Eventos de manutenção e operação
-- **audit_logs** - Logs de auditoria do sistema
-- **system_settings** - Configurações globais
+  Available via [Homebrew](https://brew.sh). To install:
 
-### Migrações Aplicadas
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-1. `001_create_assets_table.sql` - Criação da tabela de ativos
-2. `002_create_events_table.sql` - Criação da tabela de eventos
-3. `003_enable_rls_policies.sql` - Habilitação de RLS
-4. `004_admin_dashboard_setup.sql` - Setup do dashboard admin
-5. `005_add_user_roles.sql` - Sistema de roles (admin/operator)
-6. `006_fix_rls_policies.sql` - Correção de políticas RLS
-7. `007_protect_get_all_users.sql` - Proteção de funções RPC
-8. `008_clean_demo_data_function.sql` - Função de limpeza
+  To install the beta release channel:
+  
+  ```sh
+  brew install supabase/tap/supabase-beta
+  brew link --overwrite supabase-beta
+  ```
+  
+  To upgrade:
 
-## 👥 Sistema de Roles
+  ```sh
+  brew upgrade supabase
+  ```
+</details>
 
-### Admin
-- Acesso completo ao sistema
-- Gerenciamento de usuários
-- Configurações globais
-- Logs de auditoria
+<details>
+  <summary><b>Windows</b></summary>
 
-### Operator
-- Registro de eventos
-- Visualização de ativos
-- Relatórios operacionais
+  Available via [Scoop](https://scoop.sh). To install:
 
-## 🔐 Autenticação
+  ```powershell
+  scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
+  scoop install supabase
+  ```
 
-O sistema utiliza **autenticação dupla**:
+  To upgrade:
 
-1. **Login tradicional** (email/senha) via Supabase Auth
-2. **PIN de 4 dígitos** para acesso rápido em ambiente industrial
+  ```powershell
+  scoop update supabase
+  ```
+</details>
 
-### Credenciais Padrão
+<details>
+  <summary><b>Linux</b></summary>
 
-**Admin:**
-- Email: tiagosantosr59@gmail.com
-- PIN: 1234
+  Available via [Homebrew](https://brew.sh) and Linux packages.
 
-## 📊 Funcionalidades
+  #### via Homebrew
 
-### V1.0 - MVP
-- ✅ Cadastro e gestão de ativos
-- ✅ Registro de eventos (manutenção, inspeção, não conformidade)
-- ✅ Scanner QR Code para identificação rápida
-- ✅ Upload de fotos
-- ✅ Dashboard com KPIs dinâmicos
+  To install:
 
-### V1.1 - Melhorias
-- ✅ Busca avançada e filtros
-- ✅ Paginação de resultados
-- ✅ Export para CSV
-- ✅ Tutorial interativo (onboarding)
+  ```sh
+  brew install supabase/tap/supabase
+  ```
 
-### V1.2 - Dashboard Admin
-- ✅ Painel administrativo
-- ✅ Gerenciamento de usuários
-- ✅ Configurações globais
-- ✅ Logs de auditoria
+  To upgrade:
 
-### Sprint 1 - Correções Críticas ✅
-- ✅ Autenticação via PIN corrigida
-- ✅ Sistema de Roles implementado
-- ✅ Políticas RLS atualizadas
+  ```sh
+  brew upgrade supabase
+  ```
 
-### Sprint 2 - Melhorias (Em Progresso)
-- 🔄 Sistema de emails (Resend)
-- 🔄 Onboarding para novos usuários
-- 🔄 Documentação expandida
+  #### via Linux packages
 
-## 🧪 Testes
+  Linux packages are provided in [Releases](https://github.com/supabase/cli/releases). To install, download the `.apk`/`.deb`/`.rpm`/`.pkg.tar.zst` file depending on your package manager and run the respective commands.
+
+  ```sh
+  sudo apk add --allow-untrusted <...>.apk
+  ```
+
+  ```sh
+  sudo dpkg -i <...>.deb
+  ```
+
+  ```sh
+  sudo rpm -i <...>.rpm
+  ```
+
+  ```sh
+  sudo pacman -U <...>.pkg.tar.zst
+  ```
+</details>
+
+<details>
+  <summary><b>Other Platforms</b></summary>
+
+  You can also install the CLI via [go modules](https://go.dev/ref/mod#go-install) without the help of package managers.
+
+  ```sh
+  go install github.com/supabase/cli@latest
+  ```
+
+  Add a symlink to the binary in `$PATH` for easier access:
+
+  ```sh
+  ln -s "$(go env GOPATH)/bin/cli" /usr/bin/supabase
+  ```
+
+  This works on other non-standard Linux distros.
+</details>
+
+<details>
+  <summary><b>Community Maintained Packages</b></summary>
+
+  Available via [pkgx](https://pkgx.sh/). Package script [here](https://github.com/pkgxdev/pantry/blob/main/projects/supabase.com/cli/package.yml).
+  To install in your working directory:
+
+  ```bash
+  pkgx install supabase
+  ```
+
+  Available via [Nixpkgs](https://nixos.org/). Package script [here](https://github.com/NixOS/nixpkgs/blob/master/pkgs/development/tools/supabase-cli/default.nix).
+</details>
+
+### Run the CLI
 
 ```bash
-# Executar testes unitários
-pnpm test
-
-# Verificar tipos TypeScript
-pnpm check
-
-# Formatar código
-pnpm format
+supabase bootstrap
 ```
 
-### Testes de Validação
-
-Consulte `docs/GUIA_DE_TESTES.md` para o guia completo com 18 testes documentados.
-
-## 📦 Build e Deploy
+Or using npx:
 
 ```bash
-# Build para produção
-pnpm build
-
-# Preview do build
-pnpm preview
+npx supabase bootstrap
 ```
 
-### Deploy Automático
+The bootstrap command will guide you through the process of setting up a Supabase project using one of the [starter](https://github.com/supabase-community/supabase-samples/blob/main/samples.json) templates.
 
-O projeto está configurado para deploy automático via Vercel:
-- Push para `main` → Deploy em produção
-- Pull requests → Preview deployments
+## Docs
 
-## 📚 Documentação
+Command & config reference can be found [here](https://supabase.com/docs/reference/cli/about).
 
-- **ACTION-PLAN.md** - Plano de ação e roadmap
-- **AUDIT-REPORT.md** - Relatório de auditoria técnica
-- **docs/GUIA_DE_TESTES.md** - Guia de testes (18 testes)
-- **docs/SPRINT1_REPORT.md** - Relatório técnico Sprint 1
-- **docs/RESUMO_EXECUTIVO.md** - Resumo executivo
-- **docs/ONBOARDING.md** - Guia de onboarding
+## Breaking changes
 
-## 🤝 Contribuindo
+We follow semantic versioning for changes that directly impact CLI commands, flags, and configurations.
 
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/MinhaFeature`)
-3. Commit suas mudanças (`git commit -m 'feat: Adiciona MinhaFeature'`)
-4. Push para a branch (`git push origin feature/MinhaFeature`)
-5. Abra um Pull Request
+However, due to dependencies on other service images, we cannot guarantee that schema migrations, seed.sql, and generated types will always work for the same CLI major version. If you need such guarantees, we encourage you to pin a specific version of CLI in package.json.
 
-## 📄 Licença
+## Developing
 
-MIT License - veja o arquivo LICENSE para detalhes.
+To run from source:
 
-## 👨‍💻 Autor
-
-**Tiago Riveira**  
-GitHub: [@tiagoriveira](https://github.com/tiagoriveira)
-
-## 🆘 Suporte
-
-Para dúvidas ou problemas:
-1. Consulte a documentação em `docs/`
-2. Abra uma issue no GitHub
-3. Entre em contato via email
-
----
-
-**Versão:** 1.2  
-**Última atualização:** 04 de Dezembro de 2025
+```sh
+# Go >= 1.22
+go run . help
+```

@@ -117,6 +117,55 @@ function getEmailTemplate(type: string, data: any): string {
         `;
     }
 
+    if (type === 'MAINTENANCE_ALERT') {
+        return `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <style>
+                    ${baseStyle}
+                    .header { background: linear-gradient(135deg, ${data.isOverdue ? '#dc2626' : '#f59e0b'} 0%, ${data.isOverdue ? '#991b1b' : '#d97706'} 100%); }
+                    .info-box { border-left-color: ${data.isOverdue ? '#dc2626' : '#f59e0b'}; }
+                    .info-box strong { color: ${data.isOverdue ? '#dc2626' : '#f59e0b'}; }
+                    .button { background: ${data.isOverdue ? '#dc2626' : '#f59e0b'}; }
+                </style>
+            </head>
+            <body>
+                <div class="container">
+                    <div class="header">
+                        <div class="alert-icon">${data.isOverdue ? '🚨' : '🔔'}</div>
+                        <h1>${data.isOverdue ? 'URGENTE: Manutenção Atrasada' : 'Alerta: Manutenção Próxima'}</h1>
+                    </div>
+                    <div class="content">
+                        <p>${data.message}</p>
+                        
+                        <div class="info-box">
+                            <p><strong>Código do Ativo:</strong> ${data.assetCode}</p>
+                            <p><strong>Nome:</strong> ${data.assetName}</p>
+                            ${data.manufacturer ? `<p><strong>Fabricante:</strong> ${data.manufacturer}</p>` : ''}
+                            ${data.model ? `<p><strong>Modelo:</strong> ${data.model}</p>` : ''}
+                            <p><strong>Próxima Manutenção:</strong> ${data.nextMaintenanceDate}</p>
+                            ${data.isOverdue ? `<p style="color: #dc2626; font-weight: bold;">⚠️ Atrasada há ${data.daysOverdue} dias</p>` : `<p><strong>Faltam:</strong> ${data.daysUntilMaintenance} dias</p>`}
+                        </div>
+
+                        <p style="margin-top: 30px;">
+                            <a href="${data.systemUrl || 'https://seu-dominio.com'}" class="button">
+                                Acessar Sistema
+                            </a>
+                        </p>
+                    </div>
+                    <div class="footer">
+                        <p><strong>Op.Intel</strong> - Plataforma de Inteligência Operacional</p>
+                        <p>Este é um email automático. Por favor, não responda.</p>
+                    </div>
+                </div>
+            </body>
+            </html>
+        `;
+    }
+
     if (type === 'MONTHLY_REPORT') {
         return `
             <!DOCTYPE html>
