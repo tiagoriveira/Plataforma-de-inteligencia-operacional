@@ -23,6 +23,7 @@ import Admin from "./pages/Admin";
 import AdminUsers from "./pages/AdminUsers";
 import AdminSettings from "./pages/AdminSettings";
 import AdminLogs from "./pages/AdminLogs";
+import MaintenanceAlerts from "./pages/MaintenanceAlerts";
 
 function PrivateRoute({ component: Component, ...rest }: any) {
   const { user, loading, isLocked } = useAuth();
@@ -117,6 +118,9 @@ function Router() {
       </Route>
       <Route path="/admin/logs">
         {() => <AdminRoute component={AdminLogs} />}
+      </Route>
+      <Route path="/admin/alerts">
+        {() => <AdminRoute component={MaintenanceAlerts} />}
       </Route>
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />

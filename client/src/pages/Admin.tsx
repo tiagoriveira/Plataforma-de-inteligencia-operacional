@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'wouter';
-import { Users, Settings, FileText, ArrowLeft } from 'lucide-react';
+import { Users, Settings, FileText, ArrowLeft, Bell } from 'lucide-react';
 import { Card } from '@/components/ui/card';
 
 export default function Admin() {
@@ -26,6 +26,13 @@ export default function Admin() {
       icon: FileText,
       href: '/admin/logs',
       color: 'bg-orange-500'
+    },
+    {
+      title: 'Alertas de Manutenção',
+      description: 'Gerenciar alertas automáticos e destinatários',
+      icon: Bell,
+      href: '/admin/alerts',
+      color: 'bg-red-500'
     }
   ];
 

@@ -15,6 +15,16 @@ serve(async (_req: any) => {
         const now = new Date();
         const sevenDaysFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
 
+        // Buscar emails cadastrados para receber alertas
+        const { data: alertSettings, error: settingsError } = await supabase
+            .from('alert_settings')
+            .select('email')
+            .eq('receive_maintenance_alerts', true);
+
+        if (settingsError) throw settingsError;
+
+        const recipientEmails = alertSettings?.map(s => s.email) || ['tiagosantosr59@gmail.com'];
+
         // Buscar ativos que precisam de manutenção nos próximos 7 dias
         const { data: assets, error: assetsError } = await supabase
             .from('assets')
@@ -43,7 +53,8 @@ serve(async (_req: any) => {
                 alertsToSend.push({
                     asset,
                     nextMaintenance,
-                    daysUntilMaintenance
+                    daysUntilMaintenance,
+                    alertType: 'preventive'
                 });
             }
 
@@ -57,7 +68,8 @@ serve(async (_req: any) => {
                     asset,
                     nextMaintenance,
                     daysOverdue,
-                    isOverdue: true
+                    isOverdue: true,
+                    alertType: 'overdue'
                 });
             }
         }
@@ -85,25 +97,39 @@ serve(async (_req: any) => {
                 message
             };
 
-            try {
-                const { data: emailResult } = await supabase.functions.invoke('send-email-notification', {
-                    body: {
-                        to: 'tiagosantosr59@gmail.com',
-                        subject,
-                        type: 'MAINTENANCE_ALERT',
-                        data: emailData
-                    }
-                });
-                emailResults.push({ success: true, asset: alert.asset.code, emailResult });
-            } catch (emailError: any) {
-                emailResults.push({ success: false, asset: alert.asset.code, error: emailError.message });
+            // Enviar para todos os destinatários cadastrados
+            for (const email of recipientEmails) {
+                try {
+                    const { data: emailResult } = await supabase.functions.invoke('send-email-notification', {
+                        body: {
+                            to: email,
+                            subject,
+                            type: 'MAINTENANCE_ALERT',
+                            data: emailData
+                        }
+                    });
+                    emailResults.push({ success: true, asset: alert.asset.code, email, emailResult });
+                } catch (emailError: any) {
+                    emailResults.push({ success: false, asset: alert.asset.code, email, error: emailError.message });
+                }
             }
+
+            // Salvar no histórico de alertas
+            await supabase.from('maintenance_alerts').insert({
+                asset_id: alert.asset.id,
+                alert_type: alert.alertType,
+                next_maintenance_date: alert.nextMaintenance.toISOString().split('T')[0],
+                days_until_maintenance: alert.daysUntilMaintenance || null,
+                days_overdue: alert.daysOverdue || null,
+                email_sent_to: recipientEmails
+            });
         }
 
         return new Response(JSON.stringify({
             success: true,
             alertsChecked: assets?.length || 0,
             alertsSent: alertsToSend.length,
+            recipientsCount: recipientEmails.length,
             emailResults
         }), {
             headers: { "Content-Type": "application/json" },
